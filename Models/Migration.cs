@@ -6,11 +6,11 @@ namespace Journey.Models
     public class Migration(IDatabase database, List<string> queries, Rollback rollback) :
     DatabaseAction(database, queries), IReversible
     {
-        public Rollback rollback { set => throw new NotImplementedException(); }
+        private readonly Rollback rollback = rollback;
 
-        public Task Rollback()
+        public async Task Rollback()
         {
-            throw new rollback.Execute();
+            await rollback.Execute();
         }
     }
 

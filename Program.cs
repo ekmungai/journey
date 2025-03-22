@@ -1,6 +1,15 @@
 ﻿
 using Journey.Implrementations;
+using CommandLine;
 
-var fileManager = new FileManager();
-
-Console.WriteLine("Hello, World!");
+Parser.Default.ParseArguments<Options>(args)
+  .WithParsed(RunOptions)
+  .WithNotParsed(HandleParseError);
+static void RunOptions(Options opts)
+{
+    //handle options
+}
+static void HandleParseError(IEnumerable<Error> errs)
+{
+    //handle errors
+}
