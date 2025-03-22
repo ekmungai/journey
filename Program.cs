@@ -1,5 +1,5 @@
 ﻿
-using Journey.Implrementations;
+using Journey.Impllsementations;
 using CommandLine;
 
 Parser.Default.ParseArguments<Options>(args)

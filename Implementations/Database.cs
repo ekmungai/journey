@@ -9,7 +9,7 @@ namespace Journey
             throw new NotImplementedException();
         }
 
-        public Task Execute(IExecutable executable)
+        public Task Execute(string query)
         {
             throw new NotImplementedException();
         }
