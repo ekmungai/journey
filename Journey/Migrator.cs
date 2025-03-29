@@ -63,24 +63,19 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         await Init(false);
         _map = fileManager.GetMap();
         var currentVersion = await database.CurrentVersion();
-        if (target is null)
+        var version = target == null
+            ? currentVersion + 1
+            : target.Value;
+        var route = GetRoute(currentVersion, version);
+        if (route.Count > 0)
         {
-            var version = currentVersion + 1;
-            var route = GetRoute(currentVersion, version);
-            if (route.Count > 0)
-            {
-                await Travel(route);
-                return $"The database was succesfully migrated to Version: {version}{_newLine}";
-            }
-            else
-            {
-                Console.WriteLine();
-                return $"The database is up to date at Version: {currentVersion}{_newLine}";
-            }
+            await TravelForwards(route);
+            return $"The database was succesfully migrated to Version: {version}{_newLine}";
         }
         else
         {
-            return "";
+            Console.WriteLine();
+            return $"The database is up to date at Version: {currentVersion}{_newLine}";
         }
     }
 
@@ -106,7 +101,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         }
         else
         {
-            route.AddRange(Enumerable.Range(currentVersion, targetVersion - currentVersion));
+            route.AddRange(Enumerable.Range(currentVersion + 1, targetVersion - currentVersion));
         }
 
         foreach (var waypoint in route)
@@ -119,16 +114,21 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         return route;
     }
 
-    private async Task Travel(List<int> route)
+    private async Task TravelForwards(List<int> route)
     {
         foreach (var waypoint in route)
         {
             Console.WriteLine();
             Console.WriteLine($"Migrating version {waypoint}");
-            var parser = await ParseVersion(waypoint);
-            var migration = new Migration(database, parser.GetResult());
+            var migration = (Migration)await GetDatabaseAction(waypoint);
             await migration.Migrate();
 
         }
+    }
+
+    private async Task<DatabaseAction> GetDatabaseAction(int version)
+    {
+        var parser = await ParseVersion(version);
+        return new Migration(database, parser.GetResult());
     }
 }
