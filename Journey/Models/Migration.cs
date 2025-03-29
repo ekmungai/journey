@@ -10,10 +10,9 @@ public class Migration : DatabaseAction, IReversible
 
     public async Task Migrate()
     {
-        Console.WriteLine("Begin Migration ...");
+        Console.WriteLine($"Begin Migration ...{Environment.NewLine}");
         await Execute();
-        Console.WriteLine();
-        Console.WriteLine("End Migration ...");
+        Console.WriteLine($"{Environment.NewLine}End Migration ...");
     }
 
     public async Task Rollback() => await _rollback.Reverse();

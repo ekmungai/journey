@@ -1,12 +1,14 @@
 using System.Data.SQLite;
+using System.Threading.Tasks;
 internal record Sqlite : IDatabase, IDisposable
 {
-    private SqlDialect _dialect = new SqlDialect();
+    private SqlDialect _dialect = new SQliteDialect();
     private SQLiteConnection _connection;
 
-    public IDatabase Connect(string connectionString)
+    public async Task<IDatabase> Connect(string connectionString)
     {
         _connection = new SQLiteConnection(connectionString);
+        await _connection.OpenAsync();
         return this;
     }
 
@@ -26,9 +28,9 @@ internal record Sqlite : IDatabase, IDisposable
             var result = await command.ExecuteScalarAsync();
             return int.Parse(result!.ToString() ?? "");
         }
-        catch
+        catch (SQLiteException ex) when (ex.Message.Contains("no such table"))
         {
-            return 0;
+            return -1;
         }
     }
 

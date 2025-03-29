@@ -12,12 +12,12 @@ var options = (Options)OptionParser.Default.ParseArguments<
   .WithParsed<RollbackOptions>(RollbackOptions.RunOptions)
   .WithNotParsed(Options.HandleParseError).Value;
 
+// Console.ReadKey();
 IDatabase database;
 database = options.Database switch
 {
-    "sqlite" => new Sqlite().Connect(options.Connection),
-    "postgres" => new Postgres(options.Schema!).Connect(options.Connection),
-    _ => new Sqlite().Connect(options.Connection),
+    "sqlite" => await new Sqlite().Connect(options.Connection),
+    _ => await new Sqlite().Connect(options.Connection),
 };
 
 var migrator = new Migrator(new FileManager(options.VersionsDir), database);
@@ -31,8 +31,8 @@ var result = options switch
 {
     ValidateOptions => await migrator.Validate(options.Target ?? 0),
     ScaffoldOptions => await migrator.Scaffold(currentVersion + 1),
-    MigrateOptions => await migrator.Scaffold(currentVersion + 1),
-    RollbackOptions => await migrator.Scaffold(currentVersion + 1),
+    MigrateOptions => await migrator.Migrate(options.Target),
+    RollbackOptions => await migrator.Rollback(options.Target),
     _ => throw new InvalidOperationException(),
 };
 Console.WriteLine(result);

@@ -77,28 +77,31 @@ internal class Parser : IParser
     {
         if (queries.Count > 0)
         {
-            var line = GetNextLine(queries);
-
-            if (line == _dialect.StartTransaction())
+            var line = queries.Peek();
+            if (!line.Contains(_dialect.Terminator()) && !IsComment(line))
             {
-                throw new InvalidFormatException(line);
-            }
-
-            if (line == _dialect.EndTransaction())
-            {
-                _openTransaction--;
-                section.Add(line);
-                ParseSection(queries, section);
+                return ParseBlock(queries, section);
             }
             else
             {
-                if (!line.Contains(_dialect.Terminator()))
+                line = GetNextLine(queries);
+
+                if (line == _dialect.StartTransaction())
+                {
+                    throw new InvalidFormatException(line);
+                }
+
+                if (line == _dialect.EndTransaction())
+                {
+                    _openTransaction--;
+                    section.Add(line);
+                    ParseSection(queries, section);
+                }
+                else
                 {
                     section.Add(line);
-                    return ParseBlock(queries, section);
+                    return ParseQueries(queries, section);
                 }
-                section.Add(line);
-                return ParseQueries(queries, section);
             }
         }
         return null;
@@ -108,13 +111,14 @@ internal class Parser : IParser
         var line = GetNextLine(blockContents);
         if (line.Contains(_dialect.Terminator()))
         {
-            section.Add(line);
+            _block.Append(line);
+            section.Add(_block.ToString());
             _block.Clear();
             return ParseQueries(blockContents, section);
         }
         else
         {
-            section.Add(line);
+            _block.AppendLine(line);
             return ParseBlock(blockContents, section);
         }
     }
@@ -167,7 +171,7 @@ internal class Parser : IParser
     {
         try
         {
-            while (lines.Peek()[..2] == _dialect.Comment())
+            while (IsComment(lines.Peek()))
             {
                 lines.Dequeue();
             }
@@ -177,8 +181,8 @@ internal class Parser : IParser
         {
             throw new OpenTransactionException();
         }
-
     }
+    private bool IsComment(string line) => line[..2] == _dialect.Comment();
 }
 
 #pragma warning restore CS8603 // Possible null reference return.

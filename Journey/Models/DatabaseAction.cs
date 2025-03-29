@@ -7,8 +7,8 @@ public abstract class DatabaseAction(IDatabase database) : IExecutable
     {
         foreach (var query in _queries)
         {
-            Console.WriteLine($"---> {query}");
-            await database.Execute(query);
+            Console.WriteLine($"> {query}");
+            await database.Execute(query.Trim());
         }
     }
 }

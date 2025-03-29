@@ -1,11 +1,17 @@
-﻿namespace Journey.Tests;
+﻿using Moq.AutoMock;
+
+namespace Journey.Tests.UnitTests;
 
 public class ScaffoldTest
 {
     private readonly IDatabase _database;
+    private readonly AutoMocker _mocker = new(Moq.MockBehavior.Strict);
     public ScaffoldTest()
     {
-        _database = new Sqlite();
+        _database = _mocker.GetMock<IDatabase>().Object;
+        _mocker.GetMock<IDatabase>()
+        .Setup(d => d.GetDialect())
+        .Returns(new SQliteDialect());
     }
 
     [Fact]
@@ -54,9 +60,9 @@ public class ScaffoldTest
         Assert.Contains("""
             CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
-                run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
-                author varchar(100)
+                run_time TIMESTAMP  DEFAULT CURRENT_TIMESTAMP,
+                description TEXT NOT NULL,
+                author TEXT
             );
             """, output);
         Assert.Contains("END;", output);

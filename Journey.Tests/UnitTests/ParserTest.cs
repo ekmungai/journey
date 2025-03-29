@@ -1,4 +1,4 @@
-namespace Journey.Tests;
+namespace Journey.Tests.UnitTests;
 
 public class ParserTest
 {
@@ -34,7 +34,7 @@ public class ParserTest
             "END;", "",
             "-- end rollback", "",
             ];
-        var parser = new Parser(content, new SqlDialect());
+        var parser = new Parser(content, new SQliteDialect());
         parser.ParseFile();
         var result = parser.GetResult();
         var printOut = parser.ToString();
@@ -93,7 +93,7 @@ public class ParserTest
             "END;", "",
             "-- end rollback", "",
             ];
-        var parser = new Parser(content, new SqlDialect());
+        var parser = new Parser(content, new SQliteDialect());
         parser.ParseFile();
         var result = parser.GetResult();
         Assert.True(result.ContainsKey("Migration"));
@@ -126,7 +126,7 @@ public class ParserTest
             "END;", "",
             "-- end migration", "",
             ];
-        var parser = new Parser(content, new SqlDialect());
+        var parser = new Parser(content, new SQliteDialect());
         parser.ParseFile();
         var result = parser.GetResult();
         Assert.True(result.ContainsKey("Migration"));
@@ -155,7 +155,7 @@ public class ParserTest
             "-- end rollback", "",
             ];
 
-        var ex = Assert.Throws<MissingSectionException>(() => new Parser(content, new SqlDialect()));
+        var ex = Assert.Throws<MissingSectionException>(() => new Parser(content, new SQliteDialect()));
         Assert.Equal("The migration file is missing a Migration section", ex.Message);
     }
 
@@ -179,7 +179,7 @@ public class ParserTest
             "-- end migration", "",
             ];
 
-        var ex = Assert.Throws<MissingSectionException>(() => new Parser(content, new SqlDialect()));
+        var ex = Assert.Throws<MissingSectionException>(() => new Parser(content, new SQliteDialect()));
         Assert.Equal("The migration file is missing a Rollback section", ex.Message);
     }
 
@@ -206,7 +206,7 @@ public class ParserTest
             "END;", "",
             "-- end rollback", "",
             ];
-        var parser = new Parser(content, new SqlDialect());
+        var parser = new Parser(content, new SQliteDialect());
 
         Assert.Throws<OpenSectionException>(parser.ParseFile);
     }
@@ -241,7 +241,7 @@ public class ParserTest
             "DROP TABLE versions;", "",
             "-- end rollback", "",
             ];
-        var parser = new Parser(content, new SqlDialect());
+        var parser = new Parser(content, new SQliteDialect());
         Assert.Throws<OpenTransactionException>(parser.ParseFile);
     }
 
@@ -270,7 +270,7 @@ public class ParserTest
             "-- end rollback", "",
             ];
 
-        var parser = new Parser(content, new SqlDialect());
+        var parser = new Parser(content, new SQliteDialect());
         var ex = Assert.Throws<InvalidFormatException>(parser.ParseFile);
         Assert.Equal("The migration file is malformed at: END;", ex.Message);
     }
@@ -300,7 +300,7 @@ public class ParserTest
             "-- end rollback", "",
             ];
 
-        var parser = new Parser(content, new SqlDialect());
+        var parser = new Parser(content, new SQliteDialect());
         var ex = Assert.Throws<InvalidFormatException>(parser.ParseFile);
         Assert.Equal("The migration file is malformed at: END;", ex.Message);
     }
@@ -331,7 +331,7 @@ public class ParserTest
             "-- end rollback", "",
             ];
 
-        var parser = new Parser(content, new SqlDialect());
+        var parser = new Parser(content, new SQliteDialect());
         var ex = Assert.Throws<InvalidFormatException>(parser.ParseFile);
         Assert.Equal("The migration file is malformed at: BEGIN;", ex.Message);
     }
@@ -362,7 +362,7 @@ public class ParserTest
             "-- end rollback", "",
             ];
 
-        var parser = new Parser(content, new SqlDialect());
+        var parser = new Parser(content, new SQliteDialect());
         var ex = Assert.Throws<InvalidFormatException>(parser.ParseFile);
         Assert.Equal("The migration file is malformed at: BEGIN;", ex.Message);
     }
