@@ -2,7 +2,7 @@ using System.Data.SQLite;
 
 namespace Journey.Tests.IntegrationTests;
 
-public class DatabaseTest
+public class SqliteTest
 {
     private readonly IDatabase _database = new Sqlite();
     private readonly string _connectionString = "Data Source=:memory:";
@@ -41,6 +41,7 @@ public class DatabaseTest
     {
         await _database.Connect(_connectionString);
         await SetupVersionsTable();
+        var now = DateTime.UtcNow;
         List<string> queries = [
             """
             INSERT INTO versions (
@@ -56,13 +57,22 @@ public class DatabaseTest
                 description,
                 run_by,
                 author)
-            VALUES (1, 'Testing version insert number two', 'they', 'them');
+            VALUES (2, 'Testing version insert number two', 'they', 'them');
             """
         ];
 
         queries.ForEach(async q => await _database.Execute(q));
         var history = await _database.GetItinerary(10);
         Assert.Equal("1", history[0].Version);
+        Assert.Equal("Testing version insert number one", history[0].Description);
+        Assert.Equal("me", history[0].RunBy);
+        Assert.Equal("you", history[0].Author);
+        Assert.Equal(now, history[0].RunTime, TimeSpan.FromSeconds(1));
+        Assert.Equal("2", history[1].Version);
+        Assert.Equal("Testing version insert number two", history[1].Description);
+        Assert.Equal("they", history[1].RunBy);
+        Assert.Equal("them", history[1].Author);
+        Assert.Equal(now, history[1].RunTime, TimeSpan.FromSeconds(1));
     }
 
     private async Task SetupVersionsTable() => await _database.Execute(

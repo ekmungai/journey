@@ -1,7 +1,7 @@
 using System.Data.SQLite;
 internal record Sqlite : IDatabase
 {
-    private SqlDialect _dialect = new SQliteDialect();
+    private readonly SqlDialect _dialect = new SQliteDialect();
     private SQLiteConnection _connection;
 
     public async Task<IDatabase> Connect(string connectionString)
