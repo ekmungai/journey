@@ -5,10 +5,12 @@ var options = (Options)OptionParser.Default.ParseArguments<
     ValidateOptions,
     ScaffoldOptions,
     MigrateOptions,
+    HistoryOptions,
     RollbackOptions>(args)
   .WithParsed<ValidateOptions>(ValidateOptions.RunOptions)
   .WithParsed<ScaffoldOptions>(ScaffoldOptions.RunOptions)
   .WithParsed<MigrateOptions>(MigrateOptions.RunOptions)
+  .WithParsed<MigrateOptions>(HistoryOptions.RunOptions)
   .WithParsed<RollbackOptions>(RollbackOptions.RunOptions)
   .WithNotParsed(Options.HandleParseError).Value;
 
@@ -23,7 +25,7 @@ database = options.Database switch
 var migrator = new Migrator(new FileManager(options.VersionsDir), database);
 var currentVersion = await database.CurrentVersion();
 
-if (currentVersion == 0)
+if (currentVersion == -1)
 {
     await migrator.Init(!string.IsNullOrWhiteSpace(options.Quiet));
 }
@@ -33,6 +35,8 @@ var result = options switch
     ScaffoldOptions => await migrator.Scaffold(currentVersion + 1),
     MigrateOptions => await migrator.Migrate(options.Target),
     RollbackOptions => await migrator.Rollback(options.Target),
+    HistoryOptions => await migrator.History(options.Entries),
     _ => throw new InvalidOperationException(),
 };
 Console.WriteLine(result);
+database.Dispose();

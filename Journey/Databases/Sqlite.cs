@@ -1,6 +1,5 @@
 using System.Data.SQLite;
-using System.Threading.Tasks;
-internal record Sqlite : IDatabase, IDisposable
+internal record Sqlite : IDatabase
 {
     private SqlDialect _dialect = new SQliteDialect();
     private SQLiteConnection _connection;
@@ -32,6 +31,25 @@ internal record Sqlite : IDatabase, IDisposable
         {
             return -1;
         }
+    }
+
+    public async Task<List<Itinerary>> GetItinerary(int entries)
+    {
+        var history = new List<Itinerary>();
+        var command = _connection.CreateCommand();
+        command.CommandText = _dialect.HistoryQuery().Replace("[entries]", entries.ToString());
+        var reader = await command.ExecuteReaderAsync();
+        while (reader.Read())
+        {
+            history.Add(new Itinerary(
+                reader["version"].ToString()!,
+                (string)reader["description"],
+                DateTime.SpecifyKind((DateTime)reader["run_time"], DateTimeKind.Utc),
+                (string)reader["run_by"],
+                (string)reader["author"]
+            ));
+        }
+        return history;
     }
 
     public IDialect GetDialect()

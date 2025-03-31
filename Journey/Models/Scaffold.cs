@@ -24,7 +24,7 @@ internal class Scaffold
     public List<string> Scaffolding { get { return _scaffolding; } }
 
 
-    public Scaffold(IDialect dialect)
+    public Scaffold(IDialect dialect, int? version)
     {
         _scaffolding = [.. new List<string>() {
             _header,
@@ -37,16 +37,20 @@ internal class Scaffold
         }.Select(s => dialect.Comment() + " " + s)];
 
         _scaffolding.Insert(2, dialect.StartTransaction());
-        _scaffolding.Insert(4, dialect.EndTransaction());
-        _scaffolding.Insert(7, dialect.StartTransaction());
-        _scaffolding.Insert(9, dialect.EndTransaction());
+        _scaffolding.Insert(4, dialect.InsertVersion().Replace("[versionNumber]", version.ToString()));
+        _scaffolding.Insert(5, dialect.EndTransaction());
+        _scaffolding.Insert(8, dialect.StartTransaction());
+        _scaffolding.Insert(10, dialect.DeleteVersion().Replace("[versionNumber]", version.ToString()));
+        _scaffolding.Insert(11, dialect.EndTransaction());
         _dialect = dialect;
     }
 
     public void ScaffoldInit()
     {
         _scaffolding[3] = _dialect.MigrateVersionsTable();
+        _scaffolding.RemoveAt(4);
         _scaffolding[8] = _dialect.RollbackVersionsTable();
+        _scaffolding.RemoveAt(9);
     }
 
     public override string ToString()

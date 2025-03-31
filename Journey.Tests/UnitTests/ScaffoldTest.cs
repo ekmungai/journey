@@ -14,11 +14,13 @@ public class ScaffoldTest
         .Returns(new SQliteDialect());
     }
 
-    [Fact]
-    public void TestSqlDialectScaffold()
+    [Theory]
+    [InlineData(2)]
+    [InlineData(24)]
+    public void TestSqlDialectScaffold(int version)
     {
         // Arrange
-        var scaffold = new Scaffold(_database.GetDialect());
+        var scaffold = new Scaffold(_database.GetDialect(), version);
 
         // Act
         var output = scaffold.ToString();
@@ -29,6 +31,14 @@ public class ScaffoldTest
         Assert.Contains("BEGIN;", output);
         Assert.Contains("-- start migration", output);
         Assert.Contains("-- SCAFFOLDING: Enter your migration queries here ..", output);
+        Assert.Contains($"""
+            INSERT INTO versions (
+                version,
+                description,
+                run_by,
+                author)
+            VALUES ({version}, '', '', '');
+            """, output);
         Assert.Contains("END;", output);
         Assert.Contains("-- end migration", output);
         #endregion
@@ -37,6 +47,7 @@ public class ScaffoldTest
         Assert.Contains("BEGIN;", output);
         Assert.Contains("-- start rollback", output);
         Assert.Contains("-- SCAFFOLDING: Enter your rollback queries here ..", output);
+        Assert.Contains($"DELETE FROM versions WHERE version = {version}", output);
         Assert.Contains("END;", output);
         Assert.Contains("-- end rollback", output);
         #endregion
@@ -46,7 +57,7 @@ public class ScaffoldTest
     public void TestSqliteInitScaffold()
     {
         // Arrange
-        var scaffold = new Scaffold(_database.GetDialect());
+        var scaffold = new Scaffold(_database.GetDialect(), null);
         scaffold.ScaffoldInit();
 
         // Act
@@ -62,7 +73,8 @@ public class ScaffoldTest
                 version INTEGER NOT NULL,
                 run_time TIMESTAMP  DEFAULT CURRENT_TIMESTAMP,
                 description TEXT NOT NULL,
-                author TEXT
+                run_by TEXT NOT NULL,
+                author TEXT NOT NULL
             );
             """, output);
         Assert.Contains("END;", output);

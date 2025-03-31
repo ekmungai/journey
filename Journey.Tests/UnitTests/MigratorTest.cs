@@ -132,7 +132,7 @@ public class MigratorTest
         SetupQueries(queries);
 
         var result = await _migrator.Migrate(null);
-        Assert.Equal($"The database was succesfully migrated to Version: 0{Environment.NewLine}", result);
+        Assert.Equal($"{Environment.NewLine}The database was succesfully migrated to Version: 0{Environment.NewLine}", result);
     }
 
     [Fact]
@@ -240,7 +240,53 @@ public class MigratorTest
         SetupQueries(migration2Queries);
 
         var result = await _migrator.Migrate(1);
-        Assert.Equal($"The database was succesfully migrated to Version: 1{Environment.NewLine}", result);
+        Assert.Equal($"{Environment.NewLine}The database was succesfully migrated to Version: 1{Environment.NewLine}", result);
+    }
+
+    [Fact]
+    public async Task TestHistoryDefaultEntries()
+    {
+        _mocker.GetMock<IDatabase>()
+        .Setup(m => m.GetDialect())
+        .Returns(new SQliteDialect());
+
+        var timeOne = DateTimeOffset.Now.AddDays(-7);
+        var timeTwo = DateTimeOffset.Now;
+
+        _mocker.GetMock<IDatabase>()
+        .Setup(m => m.GetItinerary(10))
+        .ReturnsAsync([
+            new Itinerary("1", "Test Migration", timeOne, "me", "you"),
+            new Itinerary("2", "Test Migration 2", timeTwo, "they", "them"),
+        ]);
+
+
+        var history = await _migrator.History(10);
+        Assert.Contains($"{Environment.NewLine}Version | RunTime \t\t\t| Description \t\t\t| RunBy \t| Author", history);
+        Assert.Contains($"1 \t| {timeOne} \t| Test Migration \t| me \t| you", history);
+        Assert.Contains($"2 \t| {timeTwo} \t| Test Migration 2 \t| they \t| them", history);
+    }
+
+    [Fact]
+    public async Task TestHistoryLimitedEntries()
+    {
+        _mocker.GetMock<IDatabase>()
+        .Setup(m => m.GetDialect())
+        .Returns(new SQliteDialect());
+
+        var timeOne = DateTimeOffset.Now.AddDays(-7);
+        var timeTwo = DateTimeOffset.Now;
+
+        _mocker.GetMock<IDatabase>()
+        .Setup(m => m.GetItinerary(1))
+        .ReturnsAsync([
+            new Itinerary("1", "Test Migration", timeOne, "me", "you"),
+        ]);
+
+        var history = await _migrator.History(1);
+        Assert.Contains($"{Environment.NewLine}Version | RunTime \t\t\t| Description \t\t\t| RunBy \t| Author", history);
+        Assert.Contains($"1 \t| {timeOne} \t| Test Migration \t| me \t| you", history);
+        Assert.DoesNotContain($"2 \t| {timeTwo} \t| Test Migration 2 \t| they \t| them", history);
     }
 
     private bool AssertFragments(string source, List<string> fragments)

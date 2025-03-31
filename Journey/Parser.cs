@@ -20,13 +20,34 @@ internal class Parser : IParser
     public Parser(string[] content, IDialect dialect)
     {
         _dialect = dialect;
-        _scaffold = new Scaffold(dialect);
+        _scaffold = new Scaffold(dialect, null);
         var firstSectionIndex = GetFirstSectionIndex(content);
         _fileContents = new Queue<string>(content
             .Skip(firstSectionIndex) // skip header
             .Where(q => !string.IsNullOrWhiteSpace(q))); // remove blank spaces
-        _sectionStart = [_scaffold.Scaffolding[1], _scaffold.Scaffolding[6]];
-        _sectionEnd = [_scaffold.Scaffolding[5], _scaffold.Scaffolding[10]];
+        _sectionStart = [_scaffold.Scaffolding[1], _scaffold.Scaffolding[7]];
+        _sectionEnd = [_scaffold.Scaffolding[6], _scaffold.Scaffolding[12]];
+    }
+
+
+    public Dictionary<string, List<string>> GetResult() => _result;
+
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+
+        foreach (var section in _result.Keys)
+        {
+            sb.AppendLine();
+            sb.AppendLine(section);
+            sb.AppendLine("----------------");
+            foreach (var item in _result[section])
+            {
+                sb.AppendLine(item);
+            }
+
+        }
+        return sb.ToString();
     }
     public Queue<string>? ParseFile()
     {
@@ -42,7 +63,8 @@ internal class Parser : IParser
         : _result[Rollback];
         return ParseSection(_fileContents, section);
     }
-    public Queue<string> ParseSection(Queue<string> sectionContents, List<string> section)
+
+    private Queue<string> ParseSection(Queue<string> sectionContents, List<string> section)
     {
         if (sectionContents.Count > 0)
         {
@@ -73,19 +95,17 @@ internal class Parser : IParser
         return ParseFile();
 
     }
-    public Queue<string>? ParseQueries(Queue<string> queries, List<string> section)
+    private Queue<string>? ParseQueries(Queue<string> queries, List<string> section)
     {
         if (queries.Count > 0)
         {
-            var line = queries.Peek();
-            if (!line.Contains(_dialect.Terminator()) && !IsComment(line))
+            var line = GetNextLine(queries);
+            if (!line.Contains(_dialect.Terminator()))
             {
-                return ParseBlock(queries, section);
+                return ParseBlock(line, queries, section);
             }
             else
             {
-                line = GetNextLine(queries);
-
                 if (line == _dialect.StartTransaction())
                 {
                     throw new InvalidFormatException(line);
@@ -106,8 +126,12 @@ internal class Parser : IParser
         }
         return null;
     }
-    public Queue<string> ParseBlock(Queue<string> blockContents, List<string> section)
+    private Queue<string> ParseBlock(string? firstLine, Queue<string> blockContents, List<string> section)
     {
+        if (firstLine != null)
+        {
+            _block.AppendLine(firstLine);
+        }
         var line = GetNextLine(blockContents);
         if (line.Contains(_dialect.Terminator()))
         {
@@ -119,28 +143,8 @@ internal class Parser : IParser
         else
         {
             _block.AppendLine(line);
-            return ParseBlock(blockContents, section);
+            return ParseBlock(null, blockContents, section);
         }
-    }
-
-    public Dictionary<string, List<string>> GetResult() => _result;
-
-    public override string ToString()
-    {
-        var sb = new StringBuilder();
-
-        foreach (var section in _result.Keys)
-        {
-            sb.AppendLine();
-            sb.AppendLine(section);
-            sb.AppendLine("----------------");
-            foreach (var item in _result[section])
-            {
-                sb.AppendLine(item);
-            }
-
-        }
-        return sb.ToString();
     }
     private void Validate()
     {
@@ -156,7 +160,7 @@ internal class Parser : IParser
     private int GetFirstSectionIndex(string[] content)
     {
         var migrationSectionIndex = content.ToList().IndexOf(_scaffold.Scaffolding[1]);
-        var rollbackSectionIndex = content.ToList().IndexOf(_scaffold.Scaffolding[6]);
+        var rollbackSectionIndex = content.ToList().IndexOf(_scaffold.Scaffolding[7]);
         if (migrationSectionIndex < 0)
         {
             throw new MissingSectionException(Migration);

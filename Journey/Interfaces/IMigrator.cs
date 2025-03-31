@@ -5,4 +5,5 @@ public interface IMigrator
     public Task<string> Scaffold(int version);
     public Task<string> Migrate(int? target);
     public Task<string> Rollback(int? target);
+    public Task<string> History(int entries);
 }

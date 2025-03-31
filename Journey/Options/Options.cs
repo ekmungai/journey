@@ -16,11 +16,14 @@ internal class Options
     [Option('s', "schema", Default = "public", HelpText = "The schema to apply the migration to.")]
     public string? Schema { get; init; }
 
-    [Option('y', "quiet", HelpText = "Run the action without prompts.")]
+    [Option('q', "quiet", HelpText = "Run the action without prompts.")]
     public string? Quiet { get; init; }
 
     [Option('t', "target", HelpText = "The target version.")]
     public int? Target { get; init; }
+
+    [Option('e', "entries", Default = 10, HelpText = "The number of versions back to retieve.")]
+    public int Entries { get; init; }
 
     public static void RunOptions(Options opts)
     {
