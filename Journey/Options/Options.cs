@@ -1,5 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using CommandLine;
 
+[ExcludeFromCodeCoverage]
 internal class Options
 {
     // Required options

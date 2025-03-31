@@ -1,13 +1,14 @@
+using System.IO.Abstractions;
 
-internal class FileManager(string versionsDir) : IFileManager
+internal class FileManager(string versionsDir, IFileSystem _fileSystem) : IFileManager
 {
     public bool FileExists(int fileNumber)
-    => File.Exists(Path.Combine(versionsDir, fileNumber.ToString() + ".sql"));
+    => _fileSystem.File.Exists(Path.Combine(versionsDir, fileNumber.ToString() + ".sql"));
 
     public List<int> GetMap()
     {
         var versionNumbers = new List<int>();
-        foreach (var file in Directory.GetFiles(versionsDir, "*.sql"))
+        foreach (var file in _fileSystem.Directory.GetFiles(versionsDir, "*.sql"))
         {
             var fileName = Path.GetFileName(file);
             versionNumbers.Add(int.Parse(fileName.Split('.')[0]));
@@ -17,11 +18,11 @@ internal class FileManager(string versionsDir) : IFileManager
 
     public async Task<string[]> ReadFile(int fileNumber)
     {
-        return await File.ReadAllLinesAsync(GetPath(fileNumber));
+        return await _fileSystem.File.ReadAllLinesAsync(GetPath(fileNumber));
     }
     public async Task WriteFile(int fileNumber, string content)
     {
-        await File.WriteAllTextAsync(GetPath(fileNumber), content);
+        await _fileSystem.File.WriteAllTextAsync(GetPath(fileNumber), content);
     }
 
     private string GetPath(int fileNumber)

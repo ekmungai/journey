@@ -111,6 +111,11 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
     {
         var route = new List<int>();
 
+        if (currentVersion == targetVersion)
+        {
+            return route;
+        }
+
         if (direction < 0)
         {
             route.Add(currentVersion); // Rollbacks always start from the current version
@@ -145,17 +150,16 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         {
 
             var parser = await ParseVersion(waypoint);
+            var migration = new Migration(database, parser.GetResult());
             if (direction > 0)
             {
                 Console.WriteLine($"{_newLine}Migrating version {waypoint}");
-                var migration = new Migration(database, parser.GetResult());
                 await migration.Migrate();
             }
             else
             {
                 Console.WriteLine($"{_newLine}Rolling back version {waypoint}");
-                var rollback = new Rollback(database, parser.GetResult());
-                await rollback.Reverse();
+                await migration.Rollback();
             }
 
 
