@@ -60,11 +60,11 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
 
     public async Task<string> Migrate(int? target)
     {
-        var (currentVersion, newVersion) = await GetVersions(target);
-        var route = GetRoute(currentVersion, newVersion);
+        var (currentVersion, newVersion) = await GetVersions(target, 1);
+        var route = GetRoute(currentVersion, newVersion, 1);
         if (route.Count > 0)
         {
-            await TravelForwards(route);
+            await Travel(route, 1);
             return $"{_newLine}The database was succesfully migrated to Version: {newVersion}{_newLine}";
         }
         else
@@ -86,12 +86,12 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
 
     public async Task<string> Rollback(int? target)
     {
-        var (currentVersion, newVersion) = await GetVersions(target);
-        var route = GetRoute(currentVersion, newVersion);
+        var (currentVersion, newVersion) = await GetVersions(target, -1);
+        var route = GetRoute(currentVersion, newVersion, -1);
         if (route.Count > 0)
         {
-            await TravelBackwards(route);
-            return $"{_newLine}The database was succesfully rollback back to Version: {newVersion}{_newLine}";
+            await Travel(route, -1);
+            return $"{_newLine}The database was succesfully rolled back to Version: {newVersion}{_newLine}";
         }
         else
         {
@@ -107,16 +107,22 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         return parser;
     }
 
-    private List<int> GetRoute(int currentVersion, int targetVersion)
+    private List<int> GetRoute(int currentVersion, int targetVersion, int direction)
     {
         var route = new List<int>();
-        if (currentVersion + 1 == targetVersion)
+
+        if (direction < 0)
         {
-            route.Add(targetVersion);
+            route.Add(currentVersion); // Rollbacks always start from the current version
         }
-        else
+        while (targetVersion != currentVersion)
         {
-            route.AddRange(Enumerable.Range(currentVersion + 1, targetVersion - currentVersion));
+            currentVersion += direction;
+            if (currentVersion == -1 && direction == -1)
+            {
+                break;
+            }
+            route.Add(currentVersion);
         }
 
         foreach (var waypoint in route)
@@ -129,7 +135,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         return route;
     }
 
-    private async Task TravelForwards(List<int> route)
+    private async Task Travel(List<int> route, int direction)
     {
         if (route.Count > 1)
         {
@@ -137,37 +143,45 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         }
         foreach (var waypoint in route)
         {
-            Console.WriteLine($"{_newLine}Migrating version {waypoint}");
+
             var parser = await ParseVersion(waypoint);
-            var migration = new Migration(database, parser.GetResult());
-            await migration.Migrate();
+            if (direction > 0)
+            {
+                Console.WriteLine($"{_newLine}Migrating version {waypoint}");
+                var migration = new Migration(database, parser.GetResult());
+                await migration.Migrate();
+            }
+            else
+            {
+                Console.WriteLine($"{_newLine}Rolling back version {waypoint}");
+                var rollback = new Rollback(database, parser.GetResult());
+                await rollback.Reverse();
+            }
+
 
         }
     }
 
-    private async Task TravelBackwards(List<int> route)
-    {
-        route.Reverse();
-        if (route.Count > 1)
-        {
-            Console.WriteLine($"{_newLine}Migration route is: {string.Join(" -> ", route)}");
-        }
-        foreach (var waypoint in route)
-        {
-            Console.WriteLine($"{_newLine}Rolling back version {waypoint}");
-            var parser = await ParseVersion(waypoint);
-            var rollback = new Rollback(database, parser.GetResult());
-            await rollback.Reverse();
-        }
-    }
-
-    private async Task<(int currentVersion, int nextVersion)> GetVersions(int? target)
+    private async Task<(int currentVersion, int nextVersion)> GetVersions(int? target, int direction)
     {
         _map = fileManager.GetMap();
         var currentVersion = await database.CurrentVersion();
+
         var newVersion = target == null
-            ? currentVersion + 1
+            ? currentVersion + direction
             : target.Value;
+        if (newVersion < -1)
+        {
+            throw new InvalidRollbackException("Cannot rollback beyond version -1");
+        }
+        if (newVersion > currentVersion && direction < 0)
+        {
+            throw new InvalidRollbackException($"Cannot rollback to a higher version. Target: {newVersion} > Current: {currentVersion}");
+        }
+        if (currentVersion > newVersion && direction > 0)
+        {
+            throw new InvalidMigrationException($"Cannot migrate to a lower version. Target: {newVersion} < Current: {currentVersion}");
+        }
         return (currentVersion, newVersion);
     }
 }

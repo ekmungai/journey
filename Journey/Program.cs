@@ -14,7 +14,6 @@ var options = (Options)OptionParser.Default.ParseArguments<
   .WithParsed<RollbackOptions>(RollbackOptions.RunOptions)
   .WithNotParsed(Options.HandleParseError).Value;
 
-// Console.ReadKey();
 IDatabase database;
 database = options.Database switch
 {
