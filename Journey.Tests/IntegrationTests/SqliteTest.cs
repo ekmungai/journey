@@ -4,7 +4,7 @@ namespace Journey.Tests.IntegrationTests;
 
 public class SqliteTest
 {
-    private readonly IDatabase _database = new Sqlite();
+    private readonly Sqlite _database = new();
     private readonly string _connectionString = "Data Source=:memory:";
 
     [Fact]
@@ -75,14 +75,6 @@ public class SqliteTest
         Assert.Equal(now, history[1].RunTime, TimeSpan.FromSeconds(1));
     }
 
-    private async Task SetupVersionsTable() => await _database.Execute(
-        """
-        CREATE TABLE IF NOT EXISTS versions (
-            version INTEGER NOT NULL,
-            run_time TIMESTAMP  DEFAULT CURRENT_TIMESTAMP,
-            description TEXT NOT NULL,
-            run_by TEXT NOT NULL,
-            author TEXT NOT NULL
-        );
-        """);
+    private async Task SetupVersionsTable()
+    => await _database.Execute(_database.GetDialect().MigrateVersionsTable());
 }

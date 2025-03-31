@@ -26,6 +26,7 @@ internal class Program
         {
             "sqlite" => await new Sqlite().Connect(options.Connection),
             "postgres" => await new Postgres().Connect(options.Connection, options.Schema),
+            "mysql" => await new Mysql().Connect(options.Connection, options.Schema),
             _ => await new Sqlite().Connect(options.Connection),
         };
 

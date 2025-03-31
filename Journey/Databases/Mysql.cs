@@ -1,7 +1,9 @@
-using Npgsql;
-internal record Postgres : IDatabase
+
+using MySql.Data.MySqlClient;
+
+internal record Mysql : IDatabase
 {
-    private readonly SqlDialect _dialect = new SQliteDialect();
+    private readonly SqlDialect _dbDialect = new SQliteDialect();
     private string _connectionString;
     private string _schema;
 
@@ -19,23 +21,25 @@ internal record Postgres : IDatabase
 
     public async Task Execute(string query)
     {
-        using var dataSource = NpgsqlDataSource.Create(_connectionString);
-        var command = dataSource.CreateCommand();
+        using var connection = new MySqlConnection(_connectionString);
+        await connection.OpenAsync();
+        var command = connection.CreateCommand();
         command.CommandText = query;
         await command.ExecuteNonQueryAsync();
     }
 
     public async Task<int> CurrentVersion()
     {
-        using var dataSource = NpgsqlDataSource.Create(_connectionString);
-        var command = dataSource.CreateCommand();
-        command.CommandText = _dialect.CurrentVersionQuery().Replace("versions", _schema + ".versions");
+        using var connection = new MySqlConnection(_connectionString);
+        await connection.OpenAsync();
+        var command = connection.CreateCommand();
+        command.CommandText = _dbDialect.CurrentVersionQuery();
         try
         {
             var result = await command.ExecuteScalarAsync();
             return int.Parse(result!.ToString() ?? "");
         }
-        catch (NpgsqlException ex) when (ex.Message.Contains($"42P01: relation \"{_schema}.versions\" does not exist"))
+        catch (MySqlException ex) when (ex.Message.Contains($"Table '{_schema}.versions' doesn't exist"))
         {
             return -1;
         }
@@ -44,10 +48,13 @@ internal record Postgres : IDatabase
     public async Task<List<Itinerary>> GetItinerary(int entries)
     {
         var history = new List<Itinerary>();
-        using var dataSource = NpgsqlDataSource.Create(_connectionString);
-        var command = dataSource.CreateCommand();
-        command.CommandText = _dialect.HistoryQuery().Replace("versions", _schema + ".versions").Replace("[entries]", entries.ToString());
-        var reader = await command.ExecuteReaderAsync();
+
+        using var connection = new MySqlConnection(_connectionString);
+        await connection.OpenAsync();
+        var command = connection.CreateCommand();
+        command.CommandText = _dbDialect.HistoryQuery().Replace("[entries]", entries.ToString());
+
+        using var reader = await command.ExecuteReaderAsync();
         while (reader.Read())
         {
             history.Add(new Itinerary(
@@ -58,12 +65,13 @@ internal record Postgres : IDatabase
                 (string)reader["author"]
             ));
         }
+        await reader.CloseAsync();
         return history;
     }
 
     public IDialect GetDialect()
     {
-        return _dialect;
+        return _dbDialect;
     }
 
     public void Dispose()

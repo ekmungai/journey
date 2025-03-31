@@ -1,13 +1,13 @@
-using System.Data.SQLite;
-using Testcontainers.PostgreSql;
+using MySql.Data.MySqlClient;
+using Testcontainers.MySql;
 
 namespace Journey.Tests.IntegrationTests;
 
-public class PostgresTest : IAsyncLifetime
+public class MysqlTest : IAsyncLifetime
 {
-    private readonly Postgres _database = new();
-    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder()
-        .WithImage("postgres:15-alpine")
+    private readonly Mysql _database = new();
+    private readonly MySqlContainer _container = new MySqlBuilder()
+        .WithImage("mysql:8.0")
         .Build();
 
 
@@ -24,20 +24,20 @@ public class PostgresTest : IAsyncLifetime
     [Fact]
     public async Task TestConnect()
     {
-        Assert.IsType<Postgres>(await _database.Connect(_container.GetConnectionString()));
+        Assert.IsType<Mysql>(await _database.Connect(_container.GetConnectionString(), "test"));
     }
 
     [Fact]
     public async Task TestGetCurrentVersion()
     {
-        await _database.Connect(_container.GetConnectionString(), "public");
+        await _database.Connect(_container.GetConnectionString(), "test");
         Assert.Equal(-1, await _database.CurrentVersion());
     }
 
     [Fact]
     public async Task TestExecute()
     {
-        await _database.Connect(_container.GetConnectionString());
+        await _database.Connect(_container.GetConnectionString(), "test");
         var query = "CREATE TABLE test (column1 varchar(100) NOT NULL)";
         await _database.Execute(query);
     }
@@ -45,15 +45,15 @@ public class PostgresTest : IAsyncLifetime
     [Fact]
     public async Task TestExecuteThrows()
     {
-        await _database.Connect(_container.GetConnectionString());
+        await _database.Connect(_container.GetConnectionString(), "test");
         var query = "CREATE TABLES test (column1 varchar(100) NOT NULL)";
-        await Assert.ThrowsAsync<Npgsql.PostgresException>(async () => await _database.Execute(query));
+        await Assert.ThrowsAsync<MySqlException>(async () => await _database.Execute(query));
     }
 
     [Fact]
     public async Task TestGetItinerary()
     {
-        await _database.Connect(_container.GetConnectionString(), "public");
+        await _database.Connect(_container.GetConnectionString(), "test");
         await SetupVersionsTable();
         var now = DateTime.UtcNow;
         List<string> queries = [
@@ -79,6 +79,7 @@ public class PostgresTest : IAsyncLifetime
         _database.Dispose();
 
         await Task.Delay(5000);
+        await _database.Connect(_container.GetConnectionString(), "test");
         var history = await _database.GetItinerary(10);
         Assert.Equal("1", history[0].Version);
         Assert.Equal("Testing version insert number one", history[0].Description);
