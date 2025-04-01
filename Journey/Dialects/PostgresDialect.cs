@@ -12,7 +12,6 @@ internal record PostgresDialect() : SqlDialect
     public override string InsertVersion() => """
             INSERT INTO versions (
                 version,
-                run_time,
                 description,
                 run_by,
                 author)

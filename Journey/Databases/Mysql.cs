@@ -39,7 +39,7 @@ internal record Mysql : IDatabase
             var result = await command.ExecuteScalarAsync();
             return int.Parse(result!.ToString() ?? "");
         }
-        catch (MySqlException ex) when (ex.Message.Contains($"Table '{_schema}.versions' doesn't exist"))
+        catch (MySqlException ex) when (ex.Message.Contains($"Table 'versions' doesn't exist"))
         {
             return -1;
         }

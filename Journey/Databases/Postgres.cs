@@ -29,13 +29,15 @@ internal record Postgres : IDatabase
     {
         using var dataSource = NpgsqlDataSource.Create(_connectionString);
         var command = dataSource.CreateCommand();
-        command.CommandText = _dialect.CurrentVersionQuery().Replace("versions", _schema + ".versions");
+        command.CommandText = _schema != null
+        ? _dialect.CurrentVersionQuery().Replace("versions", _schema + ".versions")
+        : _dialect.CurrentVersionQuery();
         try
         {
             var result = await command.ExecuteScalarAsync();
             return int.Parse(result!.ToString() ?? "");
         }
-        catch (NpgsqlException ex) when (ex.Message.Contains($"42P01: relation \"{_schema}.versions\" does not exist"))
+        catch (NpgsqlException ex) when (ex.Message.Contains($"versions\" does not exist"))
         {
             return -1;
         }
@@ -46,7 +48,10 @@ internal record Postgres : IDatabase
         var history = new List<Itinerary>();
         using var dataSource = NpgsqlDataSource.Create(_connectionString);
         var command = dataSource.CreateCommand();
-        command.CommandText = _dialect.HistoryQuery().Replace("versions", _schema + ".versions").Replace("[entries]", entries.ToString());
+        var query = _dialect.HistoryQuery().Replace("[entries]", entries.ToString());
+        command.CommandText = _schema != null
+        ? query.Replace("versions", _schema + ".versions")
+        : query;
         var reader = await command.ExecuteReaderAsync();
         while (reader.Read())
         {

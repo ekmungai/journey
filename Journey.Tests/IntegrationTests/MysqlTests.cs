@@ -28,10 +28,34 @@ public class MysqlTest : IAsyncLifetime
     }
 
     [Fact]
-    public async Task TestGetCurrentVersion()
+    public async Task TestGetCurrentVersionInitialized()
     {
-        await _database.Connect(_container.GetConnectionString(), "test");
-        Assert.Equal(-1, await _database.CurrentVersion());
+        await _database.Connect(_container.GetConnectionString());
+        await SetupVersionsTable();
+
+        Assert.Equal(0, await _database.CurrentVersion());
+
+        await _database.Execute("""
+            INSERT INTO versions (
+                version,
+                description,
+                run_by,
+                author)
+            VALUES (1, 'Testing version insert number one', 'me', 'you');
+            """);
+
+        Assert.Equal(1, await _database.CurrentVersion());
+
+        await _database.Execute("""
+            INSERT INTO versions (
+                version,
+                description,
+                run_by,
+                author)
+            VALUES (2, 'Testing version insert number two', 'they', 'them');
+            """);
+
+        Assert.Equal(2, await _database.CurrentVersion());
     }
 
     [Fact]

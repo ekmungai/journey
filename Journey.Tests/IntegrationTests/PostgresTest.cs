@@ -28,10 +28,41 @@ public class PostgresTest : IAsyncLifetime
     }
 
     [Fact]
-    public async Task TestGetCurrentVersion()
+    public async Task TestGetCurrentVersionUninitialized()
     {
-        await _database.Connect(_container.GetConnectionString(), "public");
+        await _database.Connect(_container.GetConnectionString());
         Assert.Equal(-1, await _database.CurrentVersion());
+    }
+
+    [Fact]
+    public async Task TestGetCurrentVersionInitialized()
+    {
+        await _database.Connect(_container.GetConnectionString());
+        await SetupVersionsTable();
+
+        Assert.Equal(0, await _database.CurrentVersion());
+
+        await _database.Execute("""
+            INSERT INTO versions (
+                version,
+                description,
+                run_by,
+                author)
+            VALUES (1, 'Testing version insert number one', 'me', 'you');
+            """);
+
+        Assert.Equal(1, await _database.CurrentVersion());
+
+        await _database.Execute("""
+            INSERT INTO versions (
+                version,
+                description,
+                run_by,
+                author)
+            VALUES (2, 'Testing version insert number two', 'they', 'them');
+            """);
+
+        Assert.Equal(2, await _database.CurrentVersion());
     }
 
     [Fact]
@@ -53,7 +84,7 @@ public class PostgresTest : IAsyncLifetime
     [Fact]
     public async Task TestGetItinerary()
     {
-        await _database.Connect(_container.GetConnectionString(), "public");
+        await _database.Connect(_container.GetConnectionString());
         await SetupVersionsTable();
         var now = DateTime.UtcNow;
         List<string> queries = [
