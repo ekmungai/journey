@@ -232,7 +232,7 @@ public class MigratorTest
         SetupQueries(queries);
 
         var result = await _migrator.Migrate(null, false);
-        Assert.Equal($"{Environment.NewLine}The database was succesfully migrated to Version: 0{Environment.NewLine}", result);
+        Assert.Equal($"{Environment.NewLine}The database was succesfully migrated to version: 0{Environment.NewLine}", result);
     }
 
     [Fact]
@@ -377,7 +377,7 @@ public class MigratorTest
         SetupQueries(migration3Queries);
 
         var result = await _migrator.Migrate(2, false);
-        Assert.Equal($"{Environment.NewLine}The database was succesfully migrated to Version: 2{Environment.NewLine}", result);
+        Assert.Equal($"{Environment.NewLine}The database was succesfully migrated to version: 2{Environment.NewLine}", result);
     }
 
     [Fact]
@@ -661,7 +661,7 @@ public class MigratorTest
         SetupQueries(migration3Queries);
 
         var result = await _migrator.Update(false);
-        Assert.Equal($"{Environment.NewLine}The database was succesfully migrated to Version: 2{Environment.NewLine}", result);
+        Assert.Equal($"{Environment.NewLine}The database was succesfully migrated to version: 2{Environment.NewLine}", result);
     }
 
     [Fact]
@@ -727,7 +727,7 @@ public class MigratorTest
         SetupQueries(queries);
 
         var result = await _migrator.Rollback(null, false);
-        Assert.Equal($"{Environment.NewLine}The database was succesfully rolled back to Version: -1{Environment.NewLine}", result);
+        Assert.Equal($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}", result);
     }
 
     [Fact]
@@ -867,7 +867,7 @@ public class MigratorTest
         SetupQueries(migration3Queries);
 
         var result = await _migrator.Rollback(-1, false);
-        Assert.Equal($"{Environment.NewLine}The database was succesfully rolled back to Version: -1{Environment.NewLine}", result);
+        Assert.Equal($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}", result);
     }
 
     [Fact]
