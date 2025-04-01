@@ -1,4 +1,4 @@
 public interface IExecutable
 {
-    public Task Execute();
+    public Task Execute(bool debug);
 }

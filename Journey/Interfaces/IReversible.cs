@@ -1,4 +1,4 @@
 public interface IReversible
 {
-    public Task Rollback();
+    public Task Rollback(bool debug);
 }

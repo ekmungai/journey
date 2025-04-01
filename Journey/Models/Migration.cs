@@ -8,10 +8,10 @@ public class Migration : DatabaseAction, IReversible
         _rollback = new Rollback(database, sections);
     }
 
-    public async Task Migrate()
+    public async Task Migrate(bool debug)
     {
-        await Execute();
+        await Execute(debug);
     }
 
-    public async Task Rollback() => await _rollback.Reverse();
+    public async Task Rollback(bool debug) => await _rollback.Reverse(debug);
 }

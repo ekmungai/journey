@@ -1,19 +1,22 @@
 using System.Text;
-using System.Xml;
 
 internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrator
 {
     private const string yes = "y|yes|Y|Yes";
     private List<int> _map = [];
+    private int _currentVersion;
     private string _newLine = Environment.NewLine;
+
 
     public async Task Init(bool quiet)
     {
+        await InitState();
+
         if (!fileManager.FileExists(0))
         {
             if (quiet)
             {
-                await Scaffold(0);
+                await Scaffold();
             }
             else
             {
@@ -21,7 +24,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
                 var answer = Console.ReadLine();
                 if (answer != null && yes.Contains(answer))
                 {
-                    await Scaffold(0);
+                    await Scaffold();
                 }
                 else
                 {
@@ -31,8 +34,11 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         }
     }
 
-    public async Task<string> Scaffold(int version)
+    public async Task<string> Scaffold()
     {
+        await InitState();
+
+        var version = _currentVersion++;
         var scaffold = new Scaffold(database.GetDialect(), version);
         Console.WriteLine($"{_newLine}Scafffolding version: {version}");
         if (version == 0)
@@ -58,14 +64,14 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         }
     }
 
-    public async Task<string> Migrate(int? target)
+    public async Task<string> Migrate(int? target, bool? debug)
     {
         var (currentVersion, newVersion) = await GetVersions(target, 1);
         var route = GetRoute(currentVersion, newVersion, 1);
         if (route.Count > 0)
         {
-            await Travel(route, 1);
-            return $"{_newLine}The database was succesfully migrated to Version: {newVersion}{_newLine}";
+            await Travel(route, 1, debug ?? false);
+            return $"{_newLine}The database was succesfully migrated to version: {newVersion}{_newLine}";
         }
         else
         {
@@ -84,19 +90,26 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         return diary.ToString();
     }
 
-    public async Task<string> Rollback(int? target)
+    public async Task<string> Rollback(int? target, bool? debug)
     {
         var (currentVersion, newVersion) = await GetVersions(target, -1);
         var route = GetRoute(currentVersion, newVersion, -1);
         if (route.Count > 0)
         {
-            await Travel(route, -1);
-            return $"{_newLine}The database was succesfully rolled back to Version: {newVersion}{_newLine}";
+            await Travel(route, -1, debug ?? false);
+            return $"{_newLine}The database was succesfully rolled back to version: {newVersion}{_newLine}";
         }
         else
         {
             return $"{_newLine}The database is up to date at Version: {currentVersion}{_newLine}";
         }
+    }
+
+    public async Task<string> Update(bool? debug)
+    {
+        await InitState();
+        var latest = _map[^1];
+        return await Migrate(latest, debug);
     }
 
     private async Task<Parser> ParseVersion(int version)
@@ -140,7 +153,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         return route;
     }
 
-    private async Task Travel(List<int> route, int direction)
+    private async Task Travel(List<int> route, int direction, bool debug)
     {
         if (route.Count > 1)
         {
@@ -154,12 +167,12 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
             if (direction > 0)
             {
                 Console.WriteLine($"{_newLine}Migrating version {waypoint}");
-                await migration.Migrate();
+                await migration.Migrate(debug);
             }
             else
             {
                 Console.WriteLine($"{_newLine}Rolling back version {waypoint}");
-                await migration.Rollback();
+                await migration.Rollback(debug);
             }
 
 
@@ -168,24 +181,31 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
 
     private async Task<(int currentVersion, int nextVersion)> GetVersions(int? target, int direction)
     {
-        _map = fileManager.GetMap();
-        var currentVersion = await database.CurrentVersion();
-
+        await InitState();
         var newVersion = target == null
-            ? currentVersion + direction
+            ? _currentVersion + direction
             : target.Value;
         if (newVersion < -1)
         {
             throw new InvalidRollbackException("Cannot rollback beyond version -1");
         }
-        if (newVersion > currentVersion && direction < 0)
+        if (newVersion > _currentVersion && direction < 0)
         {
-            throw new InvalidRollbackException($"Cannot rollback to a higher version. Target: {newVersion} > Current: {currentVersion}");
+            throw new InvalidRollbackException($"Cannot rollback to a higher version. Target: {newVersion} > Current: {_currentVersion}");
         }
-        if (currentVersion > newVersion && direction > 0)
+        if (_currentVersion > newVersion && direction > 0)
         {
-            throw new InvalidMigrationException($"Cannot migrate to a lower version. Target: {newVersion} < Current: {currentVersion}");
+            throw new InvalidMigrationException($"Cannot migrate to a lower version. Target: {newVersion} < Current: {_currentVersion}");
         }
-        return (currentVersion, newVersion);
+        return (_currentVersion, newVersion);
+    }
+    private async Task InitState()
+    {
+        if (_map.Count == 0)
+        {
+            _map = fileManager.GetMap();
+            _currentVersion = await database.CurrentVersion();
+
+        }
     }
 }

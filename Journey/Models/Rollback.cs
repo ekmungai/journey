@@ -5,8 +5,8 @@ public class Rollback : DatabaseAction
         _queries = sections[Parser.Rollback];
     }
 
-    public async Task Reverse()
+    public async Task Reverse(bool debug)
     {
-        await Execute();
+        await Execute(debug);
     }
 }
