@@ -66,6 +66,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
 
     public async Task<string> Migrate(int? target, bool? debug)
     {
+        await InitState();
         var (currentVersion, newVersion) = await GetVersions(target, 1);
         var route = GetRoute(currentVersion, newVersion, 1);
         if (route.Count > 0)
@@ -92,6 +93,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
 
     public async Task<string> Rollback(int? target, bool? debug)
     {
+        await InitState();
         var (currentVersion, newVersion) = await GetVersions(target, -1);
         var route = GetRoute(currentVersion, newVersion, -1);
         if (route.Count > 0)
@@ -204,8 +206,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         if (_map.Count == 0)
         {
             _map = fileManager.GetMap();
-            _currentVersion = await database.CurrentVersion();
-
         }
+        _currentVersion = await database.CurrentVersion();
     }
 }

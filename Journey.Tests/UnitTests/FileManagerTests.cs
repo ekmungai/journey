@@ -1,12 +1,9 @@
-using Moq.AutoMock;
 using System.IO.Abstractions.TestingHelpers;
-using System.Threading.Tasks;
 
 namespace Journey.Tests.UnitTests;
 
 public class FileManagerTest
 {
-    private readonly AutoMocker _mocker = new(Moq.MockBehavior.Strict);
     private readonly MockFileSystem _fileSystem = new();
     private readonly string _versionsDir = ".";
 
