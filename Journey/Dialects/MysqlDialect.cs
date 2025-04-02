@@ -17,6 +17,4 @@ internal record MysqlDialect() : SqlDialect
                 author)
             VALUES ([versionNumber], '', '', '');
             """;
-
-    public override string DeleteVersion() => "DELETE FROM versions WHERE version = [versionNumber]";
 }

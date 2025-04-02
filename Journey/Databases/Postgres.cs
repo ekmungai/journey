@@ -1,7 +1,7 @@
 using Npgsql;
 internal record Postgres : IDatabase
 {
-    private readonly SqlDialect _dialect = new SQliteDialect();
+    private readonly SqlDialect _dialect = new PostgresDialect();
     private string _connectionString;
     private string _schema;
 
@@ -21,7 +21,9 @@ internal record Postgres : IDatabase
     {
         using var dataSource = NpgsqlDataSource.Create(_connectionString);
         var command = dataSource.CreateCommand();
-        command.CommandText = query;
+        command.CommandText = _schema != null
+            ? query.Replace("versions", _schema + ".versions")
+            : query;
         await command.ExecuteNonQueryAsync();
     }
 

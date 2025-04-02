@@ -1,12 +1,12 @@
-using System.Data.SQLite;
-using Testcontainers.PostgreSql;
+using System.Data.SqlClient;
+using Testcontainers.MsSql;
 
 namespace Journey.Tests.IntegrationTests;
 
-public class PostgresTest : IAsyncLifetime
+public class MssqlTest : IAsyncLifetime
 {
-    private readonly Postgres _database = new();
-    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder()
+    private readonly Mssql _database = new();
+    private readonly MsSqlContainer _container = new MsSqlBuilder()
         .Build();
 
 
@@ -23,7 +23,7 @@ public class PostgresTest : IAsyncLifetime
     [Fact]
     public async Task TestConnect()
     {
-        Assert.IsType<Postgres>(await _database.Connect(_container.GetConnectionString()));
+        Assert.IsType<Mssql>(await _database.Connect(_container.GetConnectionString()));
     }
 
     [Fact]
@@ -42,11 +42,11 @@ public class PostgresTest : IAsyncLifetime
         Assert.Equal(0, await _database.CurrentVersion());
 
         await _database.Execute("""
-            INSERT INTO versions (
-                version,
-                description,
-                run_by,
-                author)
+            INSERT INTO Versions (
+                 Version,
+                Description,
+                RunBy,
+                Author)
             VALUES (1, 'Testing version insert number one', 'me', 'you');
             """);
 
@@ -54,10 +54,10 @@ public class PostgresTest : IAsyncLifetime
 
         await _database.Execute("""
             INSERT INTO versions (
-                version,
-                description,
-                run_by,
-                author)
+                 Version,
+                Description,
+                RunBy,
+                Author)
             VALUES (2, 'Testing version insert number two', 'they', 'them');
             """);
 
@@ -77,7 +77,7 @@ public class PostgresTest : IAsyncLifetime
     {
         await _database.Connect(_container.GetConnectionString());
         var query = "CREATE TABLES test (column1 varchar(100) NOT NULL)";
-        await Assert.ThrowsAsync<Npgsql.PostgresException>(async () => await _database.Execute(query));
+        await Assert.ThrowsAsync<SqlException>(async () => await _database.Execute(query));
     }
 
     [Fact]
@@ -88,19 +88,19 @@ public class PostgresTest : IAsyncLifetime
         var now = DateTime.UtcNow;
         List<string> queries = [
             """
-            INSERT INTO versions (
-                version,
-                description,
-                run_by,
-                author)
+            INSERT INTO Versions (
+                Version,
+                Description,
+                RunBy,
+                Author)
             VALUES (1, 'Testing version insert number one', 'me', 'you');
             """,
             """
             INSERT INTO versions (
-                version,
-                description,
-                run_by,
-                author)
+                 Version,
+                Description,
+                RunBy,
+                Author)
             VALUES (2, 'Testing version insert number two', 'they', 'them');
             """
         ];
@@ -109,6 +109,7 @@ public class PostgresTest : IAsyncLifetime
         _database.Dispose();
 
         await Task.Delay(5000);
+        await _database.Connect(_container.GetConnectionString());
         var history = await _database.GetItinerary(10);
         Assert.Equal("1", history[0].Version);
         Assert.Equal("Testing version insert number one", history[0].Description);

@@ -17,6 +17,4 @@ internal record PostgresDialect() : SqlDialect
                 author)
             VALUES ([versionNumber], '', '', '');
             """;
-
-    public override string DeleteVersion() => "DELETE FROM versions WHERE version = [versionNumber]";
 }

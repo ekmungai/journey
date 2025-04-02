@@ -7,7 +7,6 @@ public class MysqlTest : IAsyncLifetime
 {
     private readonly Mysql _database = new();
     private readonly MySqlContainer _container = new MySqlBuilder()
-        .WithImage("mysql:8.0")
         .Build();
 
 
@@ -24,7 +23,14 @@ public class MysqlTest : IAsyncLifetime
     [Fact]
     public async Task TestConnect()
     {
-        Assert.IsType<Mysql>(await _database.Connect(_container.GetConnectionString(), "test"));
+        Assert.IsType<Mysql>(await _database.Connect(_container.GetConnectionString()));
+    }
+
+    [Fact]
+    public async Task TestGetCurrentVersionUninitialized()
+    {
+        await _database.Connect(_container.GetConnectionString());
+        Assert.Equal(-1, await _database.CurrentVersion());
     }
 
     [Fact]
@@ -61,7 +67,7 @@ public class MysqlTest : IAsyncLifetime
     [Fact]
     public async Task TestExecute()
     {
-        await _database.Connect(_container.GetConnectionString(), "test");
+        await _database.Connect(_container.GetConnectionString());
         var query = "CREATE TABLE test (column1 varchar(100) NOT NULL)";
         await _database.Execute(query);
     }
@@ -69,7 +75,7 @@ public class MysqlTest : IAsyncLifetime
     [Fact]
     public async Task TestExecuteThrows()
     {
-        await _database.Connect(_container.GetConnectionString(), "test");
+        await _database.Connect(_container.GetConnectionString());
         var query = "CREATE TABLES test (column1 varchar(100) NOT NULL)";
         await Assert.ThrowsAsync<MySqlException>(async () => await _database.Execute(query));
     }
@@ -77,7 +83,7 @@ public class MysqlTest : IAsyncLifetime
     [Fact]
     public async Task TestGetItinerary()
     {
-        await _database.Connect(_container.GetConnectionString(), "test");
+        await _database.Connect(_container.GetConnectionString());
         await SetupVersionsTable();
         var now = DateTime.UtcNow;
         List<string> queries = [
@@ -103,7 +109,7 @@ public class MysqlTest : IAsyncLifetime
         _database.Dispose();
 
         await Task.Delay(5000);
-        await _database.Connect(_container.GetConnectionString(), "test");
+        await _database.Connect(_container.GetConnectionString());
         var history = await _database.GetItinerary(10);
         Assert.Equal("1", history[0].Version);
         Assert.Equal("Testing version insert number one", history[0].Description);
