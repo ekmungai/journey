@@ -1,4 +1,3 @@
-using MySql.Data.MySqlClient;
 using Testcontainers.MySql;
 
 namespace Journey.Tests.IntegrationTests;
@@ -77,7 +76,7 @@ public class MysqlTest : IAsyncLifetime
     {
         await _database.Connect(_container.GetConnectionString());
         var query = "CREATE TABLES test (column1 varchar(100) NOT NULL)";
-        await Assert.ThrowsAsync<MySqlException>(async () => await _database.Execute(query));
+        await Assert.ThrowsAsync<MySqlConnector.MySqlException>(async () => await _database.Execute(query));
     }
 
     [Fact]

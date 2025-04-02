@@ -1,11 +1,11 @@
-using Testcontainers.PostgreSql;
+using Testcontainers.CockroachDb;
 
 namespace Journey.Tests.IntegrationTests;
 
-public class PostgresTest : IAsyncLifetime
+public class CockroachDbTest : IAsyncLifetime
 {
-    private readonly Postgres _database = new();
-    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder()
+    private readonly CockroachDb _database = new();
+    private readonly CockroachDbContainer _container = new CockroachDbBuilder()
         .Build();
 
 
@@ -22,7 +22,7 @@ public class PostgresTest : IAsyncLifetime
     [Fact]
     public async Task TestConnect()
     {
-        Assert.IsType<Postgres>(await _database.Connect(_container.GetConnectionString()));
+        Assert.IsType<CockroachDb>(await _database.Connect(_container.GetConnectionString()));
     }
 
     [Fact]

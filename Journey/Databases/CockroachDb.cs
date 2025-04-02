@@ -1,0 +1,2 @@
+
+internal record CockroachDb : Postgres { }
