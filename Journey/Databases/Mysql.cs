@@ -1,5 +1,5 @@
 
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 
 internal record Mysql : IDatabase
 {

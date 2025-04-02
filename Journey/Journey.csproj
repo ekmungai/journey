@@ -15,6 +15,7 @@
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.9.1" />
         <PackageReference Include="MySql.Data" Version="9.2.0" />
+        <PackageReference Include="MySqlConnector" Version="2.4.0" />
         <PackageReference Include="Npgsql" Version="9.0.3" />
         <PackageReference Include="System.Data.Sqlite" Version="1.0.119" />
         <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="22.0.12" />

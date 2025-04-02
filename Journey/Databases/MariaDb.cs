@@ -1,0 +1,4 @@
+
+internal record Mariadb : Mysql
+{
+}
