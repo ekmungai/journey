@@ -15,7 +15,11 @@ public class JourneyFacade(
         {
             "sqlite" => await new Sqlite().Connect(connectionString),
             "postgres" => await new Postgres().Connect(connectionString, schema!),
+            "timescaledb" => await new TimescaleDb().Connect(connectionString, schema!),
+            "cockroachdb" => await new CockroachDb().Connect(connectionString, schema!),
             "mysql" => await new Mysql().Connect(connectionString, schema!),
+            "mariadb" => await new Mariadb().Connect(connectionString, schema!),
+            "mssql" => await new Mssql().Connect(connectionString),
             _ => await new Sqlite().Connect(connectionString),
         };
         _migrator = new Migrator(new FileManager(versionsDir, _fileSystem ?? new FileSystem()), _database);
