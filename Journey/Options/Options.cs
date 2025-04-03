@@ -30,6 +30,9 @@ internal class Options
     [Option('b', "debug", Default = false, HelpText = "Print out migration queries as they are executed.")]
     public bool Debug { get; init; }
 
+    [Option('r', "dry run", Default = false, HelpText = "Immediately rollback migrations after they have been executed.")]
+    public bool DryRun { get; init; }
+
     public static void RunOptions(Options opts)
     {
         if (!Directory.Exists(opts.VersionsDir))

@@ -64,7 +64,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         }
     }
 
-    public async Task<string> Migrate(int? target, bool? debug)
+    public async Task<string> Migrate(int? target, bool? debug, bool? dryRun)
     {
         await InitState();
         var (currentVersion, newVersion) = await GetVersions(target, 1);
@@ -72,6 +72,11 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         if (route.Count > 0)
         {
             await Travel(route, 1, debug ?? false);
+            if (dryRun.GetValueOrDefault())
+            {
+                Console.WriteLine($"{_newLine}INFO: Dry run mode is enabled, rolling back migration changes");
+                return await Rollback(currentVersion, debug);
+            }
             return $"{_newLine}The database was succesfully migrated to version: {newVersion}{_newLine}";
         }
         else
@@ -111,7 +116,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
     {
         await InitState();
         var latest = _map[^1];
-        return await Migrate(latest, debug);
+        return await Migrate(latest, debug, false);
     }
 
     private async Task<Parser> ParseVersion(int version)
@@ -134,6 +139,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         if (direction < 0)
         {
             route.Add(currentVersion); // Rollbacks always start from the current version
+            targetVersion++; // And should stop just short of the target
         }
         while (targetVersion != currentVersion)
         {
@@ -170,6 +176,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
             {
                 Console.WriteLine($"{_newLine}Migrating version {waypoint}");
                 await migration.Migrate(debug);
+
             }
             else
             {
@@ -183,7 +190,6 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
 
     private async Task<(int currentVersion, int nextVersion)> GetVersions(int? target, int direction)
     {
-        await InitState();
         var newVersion = target == null
             ? _currentVersion + direction
             : target.Value;

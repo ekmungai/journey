@@ -35,7 +35,7 @@ internal class Program
             {
                 ValidateOptions => await journey.Validate(options.Target ?? 0),
                 ScaffoldOptions => await journey.Scaffold(),
-                MigrateOptions => await journey.Migrate(options.Target, options.Debug),
+                MigrateOptions => await journey.Migrate(options.Target, options.Debug, options.DryRun),
                 RollbackOptions => await journey.Rollback(options.Target, options.Debug),
                 HistoryOptions => await journey.History(options.Entries),
                 UpdateOptions => await journey.Update(options.Debug),

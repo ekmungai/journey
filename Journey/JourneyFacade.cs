@@ -27,7 +27,7 @@ public class JourneyFacade(
     }
 
     public async Task<string> History(int entries) => await _migrator.History(entries);
-    public async Task<string> Migrate(int? target, bool? debug) => await _migrator.Migrate(target, debug);
+    public async Task<string> Migrate(int? target, bool? debug, bool? dryRun) => await _migrator.Migrate(target, debug, dryRun);
     public async Task<string> Rollback(int? target, bool? debug) => await _migrator.Rollback(target, debug);
     public async Task<string> Scaffold() => await _migrator.Scaffold();
     public async Task<string> Update(bool? debug) => await _migrator.Update(debug);
