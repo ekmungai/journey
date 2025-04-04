@@ -4,15 +4,12 @@ public class JourneyFacade(
     string connectionString,
     string versionsDir,
     string? schema
-) : IJourneyFacade, IDisposable
-{
+) : IJourneyFacade, IDisposable {
     internal Migrator _migrator;
     internal IDatabase _database;
 
-    public async Task Init(bool quiet, IFileSystem? _fileSystem = null)
-    {
-        _database = databaseType switch
-        {
+    public async Task Init(bool quiet, IFileSystem? _fileSystem = null) {
+        _database = databaseType switch {
             "sqlite" => await new Sqlite().Connect(connectionString),
             "postgres" => await new Postgres().Connect(connectionString, schema!),
             "timescaledb" => await new TimescaleDb().Connect(connectionString, schema!),

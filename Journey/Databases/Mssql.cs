@@ -1,20 +1,21 @@
 
 using System.Data.SqlClient;
 
-internal record Mssql : IDatabase
-{
+internal record Mssql : IDatabase {
     private readonly SqlDialect _dbDialect = new MssqlDialect();
     private string _connectionString;
 
-    public async Task<IDatabase> Connect(string connectionString)
-    {
+    public async Task<IDatabase> Connect(string connectionString) {
         _connectionString = connectionString;
         return this;
     }
 
+    public async Task<IDatabase> Connect(string connectionString, string schema) {
+        return await Connect(connectionString);
+    }
 
-    public async Task Execute(string query)
-    {
+
+    public async Task Execute(string query) {
         using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync();
         var command = connection.CreateCommand();
@@ -22,25 +23,20 @@ internal record Mssql : IDatabase
         await command.ExecuteNonQueryAsync();
     }
 
-    public async Task<int> CurrentVersion()
-    {
+    public async Task<int> CurrentVersion() {
         using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync();
         var command = connection.CreateCommand();
         command.CommandText = _dbDialect.CurrentVersionQuery();
-        try
-        {
+        try {
             var result = await command.ExecuteScalarAsync();
             return int.Parse(result!.ToString() ?? "");
-        }
-        catch (SqlException ex) when (ex.Message.Contains("Invalid object name 'dbo.Versions'"))
-        {
+        } catch (SqlException ex) when (ex.Message.Contains("Invalid object name 'dbo.Versions'")) {
             return -1;
         }
     }
 
-    public async Task<List<Itinerary>> GetItinerary(int entries)
-    {
+    public async Task<List<Itinerary>> GetItinerary(int entries) {
         var history = new List<Itinerary>();
 
         using var connection = new SqlConnection(_connectionString);
@@ -49,8 +45,7 @@ internal record Mssql : IDatabase
         command.CommandText = _dbDialect.HistoryQuery().Replace("[entries]", entries.ToString());
 
         using var reader = await command.ExecuteReaderAsync();
-        while (reader.Read())
-        {
+        while (reader.Read()) {
             history.Add(new Itinerary(
                 reader["Version"].ToString()!,
                 (string)reader["Description"],
@@ -63,13 +58,11 @@ internal record Mssql : IDatabase
         return history;
     }
 
-    public IDialect GetDialect()
-    {
+    public IDialect GetDialect() {
         return _dbDialect;
     }
 
-    public void Dispose()
-    {
+    public void Dispose() {
         //
     }
 }

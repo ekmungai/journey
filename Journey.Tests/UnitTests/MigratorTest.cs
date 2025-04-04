@@ -4,21 +4,18 @@ using Moq.AutoMock;
 
 namespace Journey.Tests.UnitTests;
 
-public class MigratorTest
-{
+public class MigratorTest {
     private readonly IMigrator _migrator;
     private readonly AutoMocker _mocker = new(MockBehavior.Loose); // testing strings is such a pain >_<
 
-    public MigratorTest()
-    {
+    public MigratorTest() {
         _migrator = new Migrator(
             _mocker.GetMock<IFileManager>().Object,
             _mocker.GetMock<IDatabase>().Object);
     }
 
     [Fact]
-    public async Task TestInit()
-    {
+    public async Task TestInit() {
         List<string> fragments = [
             """
             -- ------------------------------------------------------------------
@@ -68,8 +65,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestValidateValidFile()
-    {
+    public async Task TestValidateValidFile() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -116,8 +112,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestValidateInvalidFile()
-    {
+    public async Task TestValidateInvalidFile() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -165,8 +160,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestMigrateSingleStep()
-    {
+    public async Task TestMigrateSingleStep() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -235,8 +229,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestMigrateMultipleSteps()
-    {
+    public async Task TestMigrateMultipleSteps() {
         string[] migration1 = [
             """
             -- ------------------------------------------------------------------
@@ -372,8 +365,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestMigrateDryRunSingleStep()
-    {
+    public async Task TestMigrateDryRunSingleStep() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -447,8 +439,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestMigrateDryRunMultipleSteps()
-    {
+    public async Task TestMigrateDryRunMultipleSteps() {
         string[] migration1 = [
             """
             -- ------------------------------------------------------------------
@@ -596,8 +587,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestMigrateUpToDateDatabase()
-    {
+    public async Task TestMigrateUpToDateDatabase() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -665,8 +655,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestMissingMigrationFileThrows()
-    {
+    public async Task TestMissingMigrationFileThrows() {
         _mocker.GetMock<IDatabase>()
         .Setup(m => m.GetDialect())
         .Returns(new SQliteDialect());
@@ -688,8 +677,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestLowerVersionMigrationThrows()
-    {
+    public async Task TestLowerVersionMigrationThrows() {
         _mocker.GetMock<IDatabase>()
         .Setup(m => m.GetDialect())
         .Returns(new SQliteDialect());
@@ -707,8 +695,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestHistoryDefaultEntries()
-    {
+    public async Task TestHistoryDefaultEntries() {
         _mocker.GetMock<IDatabase>()
         .Setup(m => m.GetDialect())
         .Returns(new SQliteDialect());
@@ -731,8 +718,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestHistoryLimitedEntries()
-    {
+    public async Task TestHistoryLimitedEntries() {
         _mocker.GetMock<IDatabase>()
         .Setup(m => m.GetDialect())
         .Returns(new SQliteDialect());
@@ -753,8 +739,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestUpdateMigrateDatabase()
-    {
+    public async Task TestUpdateMigrateDatabase() {
         string[] migration1 = [
             """
             -- ------------------------------------------------------------------
@@ -868,8 +853,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestRollbackSingleStep()
-    {
+    public async Task TestRollbackSingleStep() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -934,8 +918,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestRollbackMultipleSteps()
-    {
+    public async Task TestRollbackMultipleSteps() {
         string[] migration1 = [
             """
             -- ------------------------------------------------------------------
@@ -1066,8 +1049,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestRollbackUpToDateDatabase()
-    {
+    public async Task TestRollbackUpToDateDatabase() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -1130,8 +1112,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestHigherVersionRollbackThrows()
-    {
+    public async Task TestHigherVersionRollbackThrows() {
         _mocker.GetMock<IDatabase>()
         .Setup(m => m.GetDialect())
         .Returns(new SQliteDialect());
@@ -1149,8 +1130,7 @@ public class MigratorTest
     }
 
     [Fact]
-    public async Task TestImpossibleRollbackThrows()
-    {
+    public async Task TestImpossibleRollbackThrows() {
         _mocker.GetMock<IDatabase>()
         .Setup(m => m.GetDialect())
         .Returns(new SQliteDialect());
@@ -1169,11 +1149,9 @@ public class MigratorTest
     private bool AssertFragments(string source, List<string> fragments)
     => fragments.TrueForAll(source.Contains);
 
-    private void SetupQueries(string[] queries)
-    {
+    private void SetupQueries(string[] queries) {
         var database = _mocker.GetMock<IDatabase>();
-        foreach (var query in queries)
-        {
+        foreach (var query in queries) {
             database.Setup(d => d.Execute(query.Trim()));
         }
     }

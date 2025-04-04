@@ -3,10 +3,8 @@ using CommandLine;
 using OptionParser = CommandLine.Parser;
 
 [ExcludeFromCodeCoverage]
-internal class Program
-{
-    private static async Task Main(string[] args)
-    {
+internal class Program {
+    private static async Task Main(string[] args) {
         var options = (Options)OptionParser.Default.ParseArguments<
             ValidateOptions,
             ScaffoldOptions,
@@ -31,8 +29,7 @@ internal class Program
         await journey.Init(options.Quiet);
 
         Console.WriteLine(
-            options switch
-            {
+            options switch {
                 ValidateOptions => await journey.Validate(options.Target ?? 0),
                 ScaffoldOptions => await journey.Scaffold(),
                 MigrateOptions => await journey.Migrate(options.Target, options.Debug, options.DryRun),

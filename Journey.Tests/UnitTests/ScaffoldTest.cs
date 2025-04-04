@@ -2,12 +2,10 @@
 
 namespace Journey.Tests.UnitTests;
 
-public class ScaffoldTest
-{
+public class ScaffoldTest {
     private readonly IDatabase _database;
     private readonly AutoMocker _mocker = new(Moq.MockBehavior.Strict);
-    public ScaffoldTest()
-    {
+    public ScaffoldTest() {
         _database = _mocker.GetMock<IDatabase>().Object;
         _mocker.GetMock<IDatabase>()
         .Setup(d => d.GetDialect())
@@ -17,8 +15,7 @@ public class ScaffoldTest
     [Theory]
     [InlineData(2)]
     [InlineData(24)]
-    public void TestSqlDialectScaffold(int version)
-    {
+    public void TestSqlDialectScaffold(int version) {
         // Arrange
         var scaffold = new Scaffold(_database.GetDialect(), version);
 
@@ -54,8 +51,7 @@ public class ScaffoldTest
     }
 
     [Fact]
-    public void TestSqliteInitScaffold()
-    {
+    public void TestSqliteInitScaffold() {
         // Arrange
         var scaffold = new Scaffold(_database.GetDialect(), null);
         scaffold.ScaffoldInit();

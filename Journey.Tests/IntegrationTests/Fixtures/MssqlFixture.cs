@@ -1,8 +1,7 @@
 using System.Data.SqlClient;
 using Testcontainers.MsSql;
 
-public class MssqlFixture : DatabaseFixture, IAsyncLifetime
-{
+public class MssqlFixture : DatabaseFixture, IAsyncLifetime {
     private readonly MsSqlContainer _container = new MsSqlBuilder()
        .Build();
 

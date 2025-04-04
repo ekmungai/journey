@@ -1,46 +1,41 @@
 using System.Data.SQLite;
-internal record Sqlite : IDatabase
-{
+internal record Sqlite : IDatabase {
     private readonly SqlDialect _dialect = new SQliteDialect();
     private SQLiteConnection _connection;
 
-    public async Task<IDatabase> Connect(string connectionString)
-    {
+    public async Task<IDatabase> Connect(string connectionString) {
         _connection = new SQLiteConnection(connectionString);
         await _connection.OpenAsync();
         return this;
     }
 
-    public async Task Execute(string query)
-    {
+    public async Task<IDatabase> Connect(string connectionString, string schema) {
+        return await Connect(connectionString);
+    }
+
+    public async Task Execute(string query) {
         var command = _connection.CreateCommand();
         command.CommandText = query;
         await command.ExecuteNonQueryAsync();
     }
 
-    public async Task<int> CurrentVersion()
-    {
+    public async Task<int> CurrentVersion() {
         var command = _connection.CreateCommand();
         command.CommandText = _dialect.CurrentVersionQuery();
-        try
-        {
+        try {
             var result = await command.ExecuteScalarAsync();
             return int.Parse(result!.ToString() ?? "");
-        }
-        catch (SQLiteException ex) when (ex.Message.Contains("no such table"))
-        {
+        } catch (SQLiteException ex) when (ex.Message.Contains("no such table")) {
             return -1;
         }
     }
 
-    public async Task<List<Itinerary>> GetItinerary(int entries)
-    {
+    public async Task<List<Itinerary>> GetItinerary(int entries) {
         var history = new List<Itinerary>();
         var command = _connection.CreateCommand();
         command.CommandText = _dialect.HistoryQuery().Replace("[entries]", entries.ToString());
         var reader = await command.ExecuteReaderAsync();
-        while (reader.Read())
-        {
+        while (reader.Read()) {
             history.Add(new Itinerary(
                 reader["version"].ToString()!,
                 (string)reader["description"],
@@ -52,13 +47,11 @@ internal record Sqlite : IDatabase
         return history;
     }
 
-    public IDialect GetDialect()
-    {
+    public IDialect GetDialect() {
         return _dialect;
     }
 
-    public void Dispose()
-    {
+    public void Dispose() {
         _connection.Close();
     }
 }

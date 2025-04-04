@@ -1,11 +1,9 @@
 namespace Journey.Tests.UnitTests;
 
-public class ParserTest
-{
+public class ParserTest {
 
     [Fact]
-    public void TestParseFile()
-    {
+    public void TestParseFile() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -70,8 +68,7 @@ public class ParserTest
     }
 
     [Fact]
-    public void TestParseDefaultSectionOrderFile()
-    {
+    public void TestParseDefaultSectionOrderFile() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -103,8 +100,7 @@ public class ParserTest
     }
 
     [Fact]
-    public void TestParseReversedSectionOrderFile()
-    {
+    public void TestParseReversedSectionOrderFile() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -136,8 +132,7 @@ public class ParserTest
     }
 
     [Fact]
-    public void TestParseFileMissingMigration()
-    {
+    public void TestParseFileMissingMigration() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -160,8 +155,7 @@ public class ParserTest
     }
 
     [Fact]
-    public void TestParseFileMissingRollback()
-    {
+    public void TestParseFileMissingRollback() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -184,8 +178,7 @@ public class ParserTest
     }
 
     [Fact]
-    public void TestParseOpenSectionFile()
-    {
+    public void TestParseOpenSectionFile() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -212,8 +205,7 @@ public class ParserTest
     }
 
     [Fact]
-    public void TestParseOpenTransactionFile()
-    {
+    public void TestParseOpenTransactionFile() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -246,8 +238,7 @@ public class ParserTest
     }
 
     [Fact]
-    public void TestParseInvalidFormatMissingMigrationBeginFile()
-    {
+    public void TestParseInvalidFormatMissingMigrationBeginFile() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -276,8 +267,7 @@ public class ParserTest
     }
 
     [Fact]
-    public void TestParseInvalidFormatMissingRollbackBeginFile()
-    {
+    public void TestParseInvalidFormatMissingRollbackBeginFile() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -306,8 +296,7 @@ public class ParserTest
     }
 
     [Fact]
-    public void TestParseInvalidFormatNestedMigrationTransactionFile()
-    {
+    public void TestParseInvalidFormatNestedMigrationTransactionFile() {
         string[] content = [
             """
             -- ------------------------------------------------------------------
@@ -337,8 +326,7 @@ public class ParserTest
     }
 
     [Fact]
-    public void TestParseInvalidFormatNestedRollbackTransactionFile()
-    {
+    public void TestParseInvalidFormatNestedRollbackTransactionFile() {
         string[] content = [
             """
             -- ------------------------------------------------------------------

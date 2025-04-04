@@ -2,8 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using CommandLine;
 
 [ExcludeFromCodeCoverage]
-internal class Options
-{
+internal class Options {
     // Required options
     [Option('p', "path", Required = true, HelpText = "The path to the versions directory.")]
     public required string VersionsDir { get; init; }
@@ -33,16 +32,13 @@ internal class Options
     [Option('r', "dry run", Default = false, HelpText = "Immediately rollback migrations after they have been executed.")]
     public bool DryRun { get; init; }
 
-    public static void RunOptions(Options opts)
-    {
-        if (!Directory.Exists(opts.VersionsDir))
-        {
+    public static void RunOptions(Options opts) {
+        if (!Directory.Exists(opts.VersionsDir)) {
             throw new DirectoryNotFoundException("Versions directory is invalid");
         }
     }
 
-    public static void HandleParseError(IEnumerable<Error> errs)
-    {
+    public static void HandleParseError(IEnumerable<Error> errs) {
         Environment.Exit(-1);
     }
 }

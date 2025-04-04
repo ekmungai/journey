@@ -3,8 +3,7 @@ using System.IO.Abstractions.TestingHelpers;
 
 namespace Journey.Tests.IntegrationTests;
 
-public class JourneyFacadeTest
-{
+public class JourneyFacadeTest {
     private readonly JourneyFacade _journeyFacade;
     private readonly string _versionsDir = "versions";
     private readonly string[] versions = [
@@ -151,8 +150,7 @@ public class JourneyFacadeTest
             """
         ];
 
-    public JourneyFacadeTest()
-    {
+    public JourneyFacadeTest() {
         _journeyFacade = new JourneyFacade(
             "sqlite",
             "Data Source=:memory:",
@@ -162,8 +160,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestValidateValidFile()
-    {
+    public async Task TestValidateValidFile() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
 
@@ -173,8 +170,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestValidateInvalidFile()
-    {
+    public async Task TestValidateInvalidFile() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(
             """
@@ -221,8 +217,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestMigrateSingleStep()
-    {
+    public async Task TestMigrateSingleStep() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         await _journeyFacade.Init(true, _fileSystem);
@@ -231,8 +226,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestMigrateMultipleSteps()
-    {
+    public async Task TestMigrateMultipleSteps() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
@@ -244,8 +238,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestMigrateUpToDateDatabase()
-    {
+    public async Task TestMigrateUpToDateDatabase() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         await _journeyFacade.Init(true, _fileSystem);
@@ -256,8 +249,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestDryRunMigrateSingleStep()
-    {
+    public async Task TestDryRunMigrateSingleStep() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         await _journeyFacade.Init(true, _fileSystem);
@@ -266,8 +258,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestDryRunMigrateMultipleSteps()
-    {
+    public async Task TestDryRunMigrateMultipleSteps() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
@@ -279,8 +270,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestMissingMigrationFileThrows()
-    {
+    public async Task TestMissingMigrationFileThrows() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData("queries"));
         await _journeyFacade.Init(true, _fileSystem);
@@ -289,8 +279,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestLowerVersionMigrationThrows()
-    {
+    public async Task TestLowerVersionMigrationThrows() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
@@ -304,8 +293,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestHistoryDefaultEntries()
-    {
+    public async Task TestHistoryDefaultEntries() {
         var now = DateTimeOffset.UtcNow;
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
@@ -322,8 +310,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestHistoryLimitedEntries()
-    {
+    public async Task TestHistoryLimitedEntries() {
         var now = DateTimeOffset.UtcNow;
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
@@ -339,8 +326,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestUpdateMigrateDatabase()
-    {
+    public async Task TestUpdateMigrateDatabase() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
@@ -352,8 +338,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestRollbackSingleStep()
-    {
+    public async Task TestRollbackSingleStep() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         await _journeyFacade.Init(true, _fileSystem);
@@ -363,8 +348,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestRollbackMultipleSteps()
-    {
+    public async Task TestRollbackMultipleSteps() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
@@ -378,8 +362,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestRollbackUpToDateDatabase()
-    {
+    public async Task TestRollbackUpToDateDatabase() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         await _journeyFacade.Init(true, _fileSystem);
@@ -390,8 +373,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestHigherVersionRollbackThrows()
-    {
+    public async Task TestHigherVersionRollbackThrows() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
@@ -403,8 +385,7 @@ public class JourneyFacadeTest
     }
 
     [Fact]
-    public async Task TestImpossibleRollbackThrows()
-    {
+    public async Task TestImpossibleRollbackThrows() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData("content"));
         await _journeyFacade.Init(true, _fileSystem);

@@ -1,7 +1,7 @@
 using Npgsql;
 using Testcontainers.CockroachDb;
 
-public class CockroachDbFixture : PostgresFixture, IAsyncLifetime
+public class CockroachDbFixture : DatabaseFixture, IAsyncLifetime
 {
     private readonly CockroachDbContainer _container = new CockroachDbBuilder()
         .Build();
@@ -12,4 +12,6 @@ public class CockroachDbFixture : PostgresFixture, IAsyncLifetime
     public override Task DisposeAsync() => _container.DisposeAsync().AsTask();
 
     public override string GetConnectionString() => _container.GetConnectionString();
+
+    public override Type GetDatabaseException() => typeof(PostgresException);
 }

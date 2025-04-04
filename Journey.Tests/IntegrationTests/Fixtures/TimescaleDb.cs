@@ -1,6 +1,7 @@
+using Npgsql;
 using Testcontainers.PostgreSql;
 
-public class TimescaleDbFixture : PostgresFixture, IAsyncLifetime
+public class TimescaleDbFixture : DatabaseFixture, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder()
         .WithImage("timescale/timescaledb:latest")
@@ -12,4 +13,5 @@ public class TimescaleDbFixture : PostgresFixture, IAsyncLifetime
     public override Task DisposeAsync() => _container.DisposeAsync().AsTask();
 
     public override string GetConnectionString() => _container.GetConnectionString();
+    public override Type GetDatabaseException() => typeof(PostgresException);
 }

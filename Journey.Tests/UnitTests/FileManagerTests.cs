@@ -2,14 +2,12 @@ using System.IO.Abstractions.TestingHelpers;
 
 namespace Journey.Tests.UnitTests;
 
-public class FileManagerTest
-{
+public class FileManagerTest {
     private readonly MockFileSystem _fileSystem = new();
     private readonly string _versionsDir = ".";
 
     [Fact]
-    public void TestFileExists()
-    {
+    public void TestFileExists() {
         // Arrange
         var fileManager = new FileManager(_versionsDir, _fileSystem);
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData("queries"));
@@ -24,8 +22,7 @@ public class FileManagerTest
     }
 
     [Fact]
-    public void TestGetMap()
-    {
+    public void TestGetMap() {
         // Arrange
         var fileManager = new FileManager(_versionsDir, _fileSystem);
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData("queries"));
@@ -43,8 +40,7 @@ public class FileManagerTest
     [InlineData(0, "queries1", "queries3")]
     [InlineData(1, "queries2", "queries5")]
     [InlineData(2, "queries3", "queries7")]
-    public async Task TestReadAndWriteFile(int fileNumber, string originalContent, string newContent)
-    {
+    public async Task TestReadAndWriteFile(int fileNumber, string originalContent, string newContent) {
         // Arrange
         var fileManager = new FileManager(_versionsDir, _fileSystem);
         _fileSystem.AddFile(Path.Combine(_versionsDir, $"{fileNumber}.sql"), new MockFileData(originalContent));
