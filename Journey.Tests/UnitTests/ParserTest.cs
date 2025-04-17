@@ -20,7 +20,7 @@ public class ParserTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, "",
@@ -45,7 +45,7 @@ public class ParserTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, result["Migration"]);
@@ -222,7 +222,7 @@ public class ParserTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, "",

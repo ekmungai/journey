@@ -1,6 +1,5 @@
 
 namespace Journey.Tests.IntegrationTests;
 
-public class TimescaleDbTest(CockroachDbFixture _container)
-    : GenericDbTests<CockroachDbFixture>(_container)
-{ }
+public class TimescaleDbTest(TimescaleDbFixture _container)
+    : GenericDbTests<TimescaleDbFixture>(_container) { }

@@ -11,7 +11,9 @@ public class MigratorTest {
     public MigratorTest() {
         _migrator = new Migrator(
             _mocker.GetMock<IFileManager>().Object,
-            _mocker.GetMock<IDatabase>().Object);
+            _mocker.GetMock<IDatabase>().Object,
+            _mocker.GetMock<ILogger>().Object,
+            true);
     }
 
     [Fact]
@@ -32,7 +34,7 @@ public class MigratorTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """,
@@ -82,7 +84,7 @@ public class MigratorTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, "",
@@ -107,8 +109,10 @@ public class MigratorTest {
         .Setup(m => m.ReadFile(0))
         .ReturnsAsync(content);
 
-        var result = await _migrator.Validate(0);
-        Assert.Contains($"{Environment.NewLine}File for version 0 is valid with the queries: {Environment.NewLine}", result);
+        _mocker.GetMock<ILogger>()
+        .Setup(l => l.Information($"{Environment.NewLine}File for version 0 is valid with the queries: {Environment.NewLine}"));
+
+        await _migrator.Validate(0);
     }
 
     [Fact]
@@ -129,7 +133,7 @@ public class MigratorTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, "",
@@ -155,8 +159,10 @@ public class MigratorTest {
         .Setup(m => m.ReadFile(0))
         .ReturnsAsync(content);
 
-        var result = await _migrator.Validate(0);
-        Assert.Contains($"File for version 0 is invalid with error: 'The migration file is malformed at: BEGIN;'", result);
+        _mocker.GetMock<ILogger>()
+        .Setup(l => l.Information($"File for version 0 is invalid with error: 'The migration file is malformed at: BEGIN;'"));
+
+        await _migrator.Validate(0);
     }
 
     [Fact]
@@ -177,7 +183,7 @@ public class MigratorTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, "",
@@ -196,7 +202,7 @@ public class MigratorTest {
             CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """,
@@ -224,8 +230,10 @@ public class MigratorTest {
 
         SetupQueries(queries);
 
-        var result = await _migrator.Migrate(null, false, false);
-        Assert.Equal($"{Environment.NewLine}The database was succesfully migrated to version: 0{Environment.NewLine}", result);
+        _mocker.GetMock<ILogger>()
+        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully migrated to version: 0{Environment.NewLine}"));
+
+        await _migrator.Migrate(null, false);
     }
 
     [Fact]
@@ -246,7 +254,7 @@ public class MigratorTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, "",
@@ -309,7 +317,7 @@ public class MigratorTest {
             CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """,
@@ -360,8 +368,10 @@ public class MigratorTest {
 
         SetupQueries(migrationQueries);
 
-        var result = await _migrator.Migrate(2, false, false);
-        Assert.Equal($"{Environment.NewLine}The database was succesfully migrated to version: 2{Environment.NewLine}", result);
+        _mocker.GetMock<ILogger>()
+        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully migrated to version: 2{Environment.NewLine}"));
+
+        await _migrator.Migrate(2, false);
     }
 
     [Fact]
@@ -382,7 +392,7 @@ public class MigratorTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, "",
@@ -401,7 +411,7 @@ public class MigratorTest {
             CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """,
@@ -434,8 +444,10 @@ public class MigratorTest {
 
         SetupQueries(queries);
 
-        var result = await _migrator.Migrate(null, false, true);
-        Assert.Equal($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}", result);
+        _mocker.GetMock<ILogger>()
+        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}"));
+
+        await _migrator.Migrate(null, true);
     }
 
     [Fact]
@@ -456,7 +468,7 @@ public class MigratorTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, "",
@@ -519,7 +531,7 @@ public class MigratorTest {
             CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """,
@@ -582,8 +594,10 @@ public class MigratorTest {
 
         SetupQueries(migrationQueries);
 
-        var result = await _migrator.Migrate(2, false, true);
-        Assert.Equal($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}", result);
+        _mocker.GetMock<ILogger>()
+        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}"));
+
+        await _migrator.Migrate(2, true);
     }
 
     [Fact]
@@ -604,7 +618,7 @@ public class MigratorTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, "",
@@ -623,7 +637,7 @@ public class MigratorTest {
             CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """,
@@ -650,8 +664,10 @@ public class MigratorTest {
         .Setup(m => m.ReadFile(0))
         .ReturnsAsync(content);
 
-        var result = await _migrator.Migrate(0, false, false);
-        Assert.Equal($"{Environment.NewLine}The database is up to date at Version: 0{Environment.NewLine}", result);
+        _mocker.GetMock<ILogger>()
+        .Setup(l => l.Information($"{Environment.NewLine}The database is up to date at Version: 0{Environment.NewLine}"));
+
+        await _migrator.Migrate(0, false);
     }
 
     [Fact]
@@ -672,7 +688,7 @@ public class MigratorTest {
         .Setup(m => m.FileExists(4))
         .Returns(true);
 
-        var ex = await Assert.ThrowsAsync<MissingMigrationFileException>(async () => await _migrator.Migrate(4, false, false));
+        var ex = await Assert.ThrowsAsync<MissingMigrationFileException>(async () => await _migrator.Migrate(4, false));
         Assert.Equal("Migration file for version 4 was not found", ex.Message);
     }
 
@@ -690,7 +706,7 @@ public class MigratorTest {
         .Setup(m => m.CurrentVersion())
         .ReturnsAsync(9);
 
-        var ex = await Assert.ThrowsAsync<InvalidMigrationException>(async () => await _migrator.Migrate(4, false, false));
+        var ex = await Assert.ThrowsAsync<InvalidMigrationException>(async () => await _migrator.Migrate(4, false));
         Assert.Equal("Cannot migrate to a lower version. Target: 4 < Current: 9", ex.Message);
     }
 
@@ -756,7 +772,7 @@ public class MigratorTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, "",
@@ -848,8 +864,10 @@ public class MigratorTest {
 
         SetupQueries(migrationQueries);
 
-        var result = await _migrator.Update(false);
-        Assert.Equal($"{Environment.NewLine}The database was succesfully migrated to version: 3{Environment.NewLine}", result);
+        _mocker.GetMock<ILogger>()
+        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully migrated to version: 3{Environment.NewLine}"));
+
+        await _migrator.Update();
     }
 
     [Fact]
@@ -870,7 +888,7 @@ public class MigratorTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, "",
@@ -913,8 +931,10 @@ public class MigratorTest {
 
         SetupQueries(queries);
 
-        var result = await _migrator.Rollback(null, false);
-        Assert.Equal($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}", result);
+        _mocker.GetMock<ILogger>()
+        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}"));
+
+        await _migrator.Rollback(null);
     }
 
     [Fact]
@@ -935,7 +955,7 @@ public class MigratorTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, "",
@@ -1044,8 +1064,10 @@ public class MigratorTest {
 
         SetupQueries(migrationQueries);
 
-        var result = await _migrator.Rollback(-1, false);
-        Assert.Equal($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}", result);
+        _mocker.GetMock<ILogger>()
+        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}"));
+
+        await _migrator.Rollback(-1);
     }
 
     [Fact]
@@ -1066,7 +1088,7 @@ public class MigratorTest {
                 CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
                 run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 author varchar(100)
             );
             """, "",
@@ -1107,8 +1129,10 @@ public class MigratorTest {
         .Setup(m => m.ReadFile(0))
         .ReturnsAsync(content);
 
-        var result = await _migrator.Rollback(0, false);
-        Assert.Equal($"{Environment.NewLine}The database is up to date at Version: 0{Environment.NewLine}", result);
+        _mocker.GetMock<ILogger>()
+        .Setup(l => l.Information($"{Environment.NewLine}The database is up to date at Version: 0{Environment.NewLine}"));
+
+        await _migrator.Rollback(0);
     }
 
     [Fact]
@@ -1125,7 +1149,7 @@ public class MigratorTest {
         .Setup(m => m.CurrentVersion())
         .ReturnsAsync(1);
 
-        var ex = await Assert.ThrowsAsync<InvalidRollbackException>(async () => await _migrator.Rollback(2, false));
+        var ex = await Assert.ThrowsAsync<InvalidRollbackException>(async () => await _migrator.Rollback(2));
         Assert.Equal("Cannot rollback to a higher version. Target: 2 > Current: 1", ex.Message);
     }
 
@@ -1143,7 +1167,7 @@ public class MigratorTest {
         .Setup(m => m.CurrentVersion())
         .ReturnsAsync(-1);
 
-        await Assert.ThrowsAsync<InvalidRollbackException>(async () => await _migrator.Rollback(null, false));
+        await Assert.ThrowsAsync<InvalidRollbackException>(async () => await _migrator.Rollback(null));
     }
 
     private bool AssertFragments(string source, List<string> fragments)

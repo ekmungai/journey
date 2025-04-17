@@ -1,6 +1,6 @@
 
 using System.Text;
-internal class Scaffold {
+internal record Scaffold {
     private const string _header = """
         ------------------------------------------------------------------
         -- | Migration file formatting rules.                               |

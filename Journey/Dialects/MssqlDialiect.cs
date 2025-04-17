@@ -1,12 +1,11 @@
-internal record MssqlDialect() : SqlDialect
-{
+internal record MssqlDialect() : SqlDialect {
     public override string MigrateVersionsTable() => """
             IF  NOT EXISTS (SELECT * FROM sys.objects 
             WHERE object_id = OBJECT_ID(N'[dbo].[Versions]') AND type in (N'U'))
             CREATE TABLE  [dbo].[Versions] (
                 Version INTEGER NOT NULL,
                 RunTime DATETIME DEFAULT CURRENT_TIMESTAMP,
-                Description varchar(100) NOT NULL,
+                description varchar(1000) NOT NULL,
                 RunBy varchar(100) NOT NULL,
                 Author varchar(100) NOT NULL
             );

@@ -1,10 +1,9 @@
 using Npgsql;
 using Testcontainers.PostgreSql;
 
-public class TimescaleDbFixture : DatabaseFixture, IAsyncLifetime
-{
+public class TimescaleDbFixture : DatabaseFixture, IAsyncLifetime {
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder()
-        .WithImage("timescale/timescaledb:latest")
+        .WithImage("timescale/timescaledb:latest-pg14")
         .Build();
 
     public override IDatabase GetDatabase() => new TimescaleDb();

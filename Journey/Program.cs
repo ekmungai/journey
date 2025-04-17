@@ -20,24 +20,38 @@ internal class Program {
         .WithParsed<UpdateOptions>(Options.RunOptions)
         .WithNotParsed(Options.HandleParseError).Value;
 
+        // Console.ReadKey();
         var journey = new JourneyFacade(
             options.Database,
             options.Connection,
             options.VersionsDir,
-            options.Schema
+            options.Schema,
+            null,
+            options.Loud
         );
         await journey.Init(options.Quiet);
 
-        Console.WriteLine(
-            options switch {
-                ValidateOptions => await journey.Validate(options.Target ?? 0),
-                ScaffoldOptions => await journey.Scaffold(),
-                MigrateOptions => await journey.Migrate(options.Target, options.Debug, options.DryRun),
-                RollbackOptions => await journey.Rollback(options.Target, options.Debug),
-                HistoryOptions => await journey.History(options.Entries),
-                UpdateOptions => await journey.Update(options.Debug),
-                _ => throw new InvalidOperationException(),
-            }
-        );
+        switch (options) {
+            case ValidateOptions:
+                await journey.Validate(options.Target ?? 0);
+                break;
+            case ScaffoldOptions:
+                await journey.Scaffold();
+                break;
+            case MigrateOptions:
+                await journey.Migrate(options.Target ?? 0, options.DryRun);
+                break;
+            case RollbackOptions:
+                await journey.Rollback(options.Target ?? 0);
+                break;
+            case HistoryOptions:
+                await journey.History(options.Entries);
+                break;
+            case UpdateOptions:
+                await journey.Update();
+                break;
+            default:
+                throw new InvalidOperationException();
+        }
     }
 }

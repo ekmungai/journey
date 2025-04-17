@@ -1,12 +1,12 @@
-public abstract class DatabaseAction(IDatabase database) : IExecutable {
+public abstract record DatabaseAction(IDatabase database, Action<string> logger) : IExecutable {
     protected List<string> _queries;
     protected readonly IDatabase _database = database;
 
-    public async Task Execute(bool debug) {
+    public async Task Execute() {
         foreach (var query in _queries) {
-            if (debug) {
-                Console.WriteLine($"> {query}");
-            }
+#if DEBUG
+            logger($"> {query}");
+#endif
             await database.Execute(query.Trim());
         }
     }

@@ -1,14 +1,14 @@
-public class Migration : DatabaseAction, IReversible {
+public record Migration : DatabaseAction, IReversible {
     private readonly Rollback _rollback;
 
-    public Migration(IDatabase database, Dictionary<string, List<string>> sections) : base(database) {
+    public Migration(IDatabase database, Dictionary<string, List<string>> sections, Action<string> logger) : base(database, logger) {
         _queries = sections[Parser.Migration];
-        _rollback = new Rollback(database, sections);
+        _rollback = new Rollback(database, sections, logger);
     }
 
-    public async Task Migrate(bool debug) {
-        await Execute(debug);
+    public async Task Migrate() {
+        await Execute();
     }
 
-    public async Task Rollback(bool debug) => await _rollback.Reverse(debug);
+    public async Task Rollback() => await _rollback.Reverse();
 }

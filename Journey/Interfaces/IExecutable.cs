@@ -1,4 +1,3 @@
-public interface IExecutable
-{
-    public Task Execute(bool debug);
+public interface IExecutable {
+    public Task Execute();
 }

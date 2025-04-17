@@ -26,8 +26,8 @@ internal class Options {
     [Option('e', "entries", Default = 10, HelpText = "The number of versions back to retieve.")]
     public int Entries { get; init; }
 
-    [Option('b', "debug", Default = false, HelpText = "Print out migration queries as they are executed.")]
-    public bool Debug { get; init; }
+    [Option('l', "loud", Default = false, HelpText = "Print out migration queries as they are executed.")]
+    public bool Loud { get; init; }
 
     [Option('r', "dry run", Default = false, HelpText = "Immediately rollback migrations after they have been executed.")]
     public bool DryRun { get; init; }

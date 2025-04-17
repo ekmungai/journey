@@ -1,10 +1,11 @@
 using System.Text;
 
-internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrator {
+internal class Migrator(IFileManager fileManager, IDatabase database, ILogger logger, bool? loud) : IMigrator {
     private const string yes = "y|yes|Y|Yes";
     private List<int> _map = [];
     private int _currentVersion;
     private string _newLine = Environment.NewLine;
+    private bool _loud = loud ?? false;
 
 
     public async Task Init(bool quiet) {
@@ -14,7 +15,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
             if (quiet) {
                 await Scaffold();
             } else {
-                Console.WriteLine($"{_newLine}Migrations have not been initialized. Would you like to do so now? [Y/n]");
+                logger.Information($"{_newLine}Migrations have not been initialized. Would you like to do so now? [Y/n]");
                 var answer = Console.ReadLine();
                 if (answer != null && yes.Contains(answer)) {
                     await Scaffold();
@@ -25,43 +26,51 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         }
     }
 
-    public async Task<string> Scaffold() {
+    public async Task Scaffold() {
         await InitState();
 
         var version = _currentVersion++;
         var scaffold = new Scaffold(database.GetDialect(), version);
-        Console.WriteLine($"{_newLine}Scafffolding version: {version}");
+        logger.Information($"{_newLine}Scafffolding version: {version}");
         if (version == 0) {
             scaffold.ScaffoldInit();
         }
         var content = scaffold.ToString();
         await fileManager.WriteFile(version, content);
-        return $"Version: {version} scaffolded with content {_newLine}{_newLine} {content}";
+        var log = $"Version: {version} scaffolded";
+        if (_loud) {
+            log += $"with content {_newLine}{_newLine} {content}";
+        }
+        logger.Information(log);
     }
 
-    public async Task<string> Validate(int version) {
+    public async Task Validate(int version) {
         try {
             var parser = await ParseVersion(version);
-            var log = $"{_newLine}File for version {version} is valid with the queries: {_newLine}";
-            return log + parser.ToString();
+            var log = $"{_newLine}File for version {version} is valid";
+            if (_loud) {
+                log += $" with the queries: {_newLine}" + parser.ToString();
+            }
+            logger.Information(log);
         } catch (Exception e) {
-            return $"File for version {version} is invalid with error: '{e.Message}'";
+            logger.Error(e, $"File for version {version} is invalid with error: '{e.Message}'");
         }
     }
 
-    public async Task<string> Migrate(int? target, bool? debug, bool? dryRun) {
+    public async Task Migrate(int? target, bool? dryRun) {
         await InitState();
         var (currentVersion, newVersion) = GetVersions(target, 1);
         var route = GetRoute(currentVersion, newVersion, 1);
         if (route.Count > 0) {
-            await Travel(route, 1, debug ?? false);
+            await Travel(route, 1);
             if (dryRun.GetValueOrDefault()) {
-                Console.WriteLine($"{_newLine}INFO: Dry run mode is enabled, rolling back migration changes");
-                return await Rollback(currentVersion, debug);
+                logger.Information($"{_newLine}INFO: Dry run mode is enabled, rolling back migration changes");
+                await Rollback(currentVersion);
+            } else {
+                logger.Information($"{_newLine}The database was succesfully migrated to version: {newVersion}{_newLine}");
             }
-            return $"{_newLine}The database was succesfully migrated to version: {newVersion}{_newLine}";
         } else {
-            return $"{_newLine}The database is up to date at Version: {currentVersion}{_newLine}";
+            logger.Information($"{_newLine}The database is up to date at Version: {currentVersion}{_newLine}");
         }
     }
 
@@ -74,22 +83,22 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         return diary.ToString();
     }
 
-    public async Task<string> Rollback(int? target, bool? debug) {
+    public async Task Rollback(int? target) {
         await InitState();
         var (currentVersion, newVersion) = GetVersions(target, -1);
         var route = GetRoute(currentVersion, newVersion, -1);
         if (route.Count > 0) {
-            await Travel(route, -1, debug ?? false);
-            return $"{_newLine}The database was succesfully rolled back to version: {newVersion}{_newLine}";
+            await Travel(route, -1);
+            logger.Information($"{_newLine}The database was succesfully rolled back to version: {newVersion}{_newLine}");
         } else {
-            return $"{_newLine}The database is up to date at Version: {currentVersion}{_newLine}";
+            logger.Information($"{_newLine}The database is up to date at Version: {currentVersion}{_newLine}");
         }
     }
 
-    public async Task<string> Update(bool? debug) {
+    public async Task Update() {
         await InitState();
         var latest = _map[^1];
-        return await Migrate(latest, debug, false);
+        await Migrate(latest, false);
     }
 
     private async Task<Parser> ParseVersion(int version) {
@@ -126,21 +135,21 @@ internal class Migrator(IFileManager fileManager, IDatabase database) : IMigrato
         return route;
     }
 
-    private async Task Travel(List<int> route, int direction, bool debug) {
+    private async Task Travel(List<int> route, int direction) {
         if (route.Count > 1) {
-            Console.WriteLine($"{_newLine}Migration route is: {string.Join(" -> ", route)}");
+            logger.Information($"{_newLine}Migration route is: {string.Join(" -> ", route)}");
         }
         foreach (var waypoint in route) {
 
             var parser = await ParseVersion(waypoint);
-            var migration = new Migration(database, parser.GetResult());
+            var migration = new Migration(database, parser.GetResult(), logger.Debug);
             if (direction > 0) {
-                Console.WriteLine($"{_newLine}Migrating version {waypoint}");
-                await migration.Migrate(debug);
+                logger.Information($"{_newLine}Migrating version {waypoint}");
+                await migration.Migrate();
 
             } else {
-                Console.WriteLine($"{_newLine}Rolling back version {waypoint}");
-                await migration.Rollback(debug);
+                logger.Information($"{_newLine}Rolling back version {waypoint}");
+                await migration.Rollback();
             }
 
 
