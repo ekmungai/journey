@@ -1,4 +1,6 @@
+/// <inheritdoc/>
 internal record MysqlDialect() : SqlDialect {
+    /// <inheritdoc/>
     public override string MigrateVersionsTable() => """
             CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
@@ -8,6 +10,7 @@ internal record MysqlDialect() : SqlDialect {
                 author varchar(100) NOT NULL
             );
             """;
+    /// <inheritdoc/>
     public override string InsertVersion() => """
             INSERT INTO versions (
                 version,

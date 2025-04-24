@@ -1,19 +1,23 @@
 using Npgsql;
+/// <inheritdoc/>
 internal record Postgres : IDatabase {
     private readonly SqlDialect _dialect = new PostgresDialect();
     private string _connectionString;
     private string _schema;
 
+    /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString) {
         _connectionString = connectionString;
         return this;
     }
 
+    /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString, string schema) {
         _schema = schema;
         return await Connect(connectionString);
     }
 
+    /// <inheritdoc/>
     public async Task Execute(string query) {
         using var dataSource = NpgsqlDataSource.Create(_connectionString);
         var command = dataSource.CreateCommand();
@@ -23,6 +27,7 @@ internal record Postgres : IDatabase {
         await command.ExecuteNonQueryAsync();
     }
 
+    /// <inheritdoc/>
     public async Task<int> CurrentVersion() {
         using var dataSource = NpgsqlDataSource.Create(_connectionString);
         var command = dataSource.CreateCommand();
@@ -37,6 +42,7 @@ internal record Postgres : IDatabase {
         }
     }
 
+    /// <inheritdoc/>
     public async Task<List<Itinerary>> GetItinerary(int entries) {
         var history = new List<Itinerary>();
         using var dataSource = NpgsqlDataSource.Create(_connectionString);
@@ -58,6 +64,7 @@ internal record Postgres : IDatabase {
         return history;
     }
 
+    /// <inheritdoc/>
     public IDialect GetDialect() {
         return _dialect;
     }

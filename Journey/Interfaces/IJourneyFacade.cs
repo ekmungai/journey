@@ -1,3 +1,2 @@
-using System.IO.Abstractions;
-
+/// <inheritdoc />
 public interface IJourneyFacade : IMigrator { }

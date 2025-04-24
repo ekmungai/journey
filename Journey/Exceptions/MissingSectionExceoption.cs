@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-
-internal class MissingSectionException(string section) : ValidationException($"The migration file is missing a {section} section")
-{
+/// <summary>
+/// The migration file is missing a required section.
+/// </summary>
+/// <param name="section">The missing section.</param>
+internal class MissingSectionException(string section) : ValidationException($"The migration file is missing a {section} section") {
 }

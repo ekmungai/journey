@@ -1,5 +1,9 @@
 
 using System.Text;
+/// <summary>
+/// Represents the structure of an empty migration file, ready to be filled with 
+/// queries that make changes to the database.
+/// </summary>
 internal record Scaffold {
     private const string _header = """
         ------------------------------------------------------------------
@@ -23,6 +27,11 @@ internal record Scaffold {
     public List<string> Scaffolding { get { return _scaffolding; } }
 
 
+    /// <summary>
+    /// Prepares the sections of an ordinary migration file.
+    /// </summary>
+    /// <param name="dialect">The dialect for which the migration should be scaffolded.</param>
+    /// <param name="version">The version of the migration should be scaffolded.</param>
     public Scaffold(IDialect dialect, int? version) {
         _scaffolding = [.. new List<string>() {
             _header,
@@ -43,6 +52,9 @@ internal record Scaffold {
         _dialect = dialect;
     }
 
+    /// <summary>
+    /// Scaffold for the first migration file, which prepares the database for use with the journey tool.
+    /// </summary>
     public void ScaffoldInit() {
         _scaffolding[3] = _dialect.MigrateVersionsTable();
         _scaffolding.RemoveAt(4);
@@ -50,6 +62,10 @@ internal record Scaffold {
         _scaffolding.RemoveAt(9);
     }
 
+    /// <summary>
+    /// Represents the contents of the scaffold as a string.
+    /// </summary>
+    /// <returns>A string representation of the contents of the file to be scaffolded.</returns>
     public override string ToString() {
         var stringBuilder = new StringBuilder();
 

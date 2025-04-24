@@ -1,4 +1,5 @@
 using System.IO.Abstractions;
+/// <inheritdoc/>
 public class JourneyFacade(
     string databaseType,
     string connectionString,
@@ -25,14 +26,22 @@ public class JourneyFacade(
         _migrator = new Migrator(new FileManager(versionsDir, _fileSystem ?? new FileSystem()), _database, _logger, loud);
         await _migrator.Init(quiet);
     }
-
+    /// <inheritdoc/>
     public async Task<string> History(int entries) => await _migrator.History(entries);
+    /// <inheritdoc/>
     public async Task Migrate(int? target, bool? dryRun) => await _migrator.Migrate(target, dryRun);
+    /// <inheritdoc/>
     public async Task Rollback(int? target) => await _migrator.Rollback(target);
+    /// <inheritdoc/>
     public async Task Scaffold() => await _migrator.Scaffold();
+    /// <inheritdoc/>
     public async Task Update() => await _migrator.Update();
+    /// <inheritdoc/>
     public async Task Validate(int version) => await _migrator.Validate(version);
+    /// <inheritdoc/>
     public Task Init(bool quiet) => Init(quiet, new FileSystem());
+    /// <inheritdoc/>
     public void Dispose() => _database.Dispose();
+    /// <inheritdoc/>
     public IDatabase GetDatabase() => _database;
 }

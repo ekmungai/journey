@@ -20,7 +20,7 @@ internal class Program {
         .WithParsed<UpdateOptions>(Options.RunOptions)
         .WithNotParsed(Options.HandleParseError).Value;
 
-        // Console.ReadKey();
+        Console.ReadKey();
         var journey = new JourneyFacade(
             options.Database,
             options.Connection,

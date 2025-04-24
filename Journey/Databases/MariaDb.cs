@@ -1,4 +1,3 @@
-
-internal record Mariadb : Mysql
-{
+/// <inheritdoc/>
+internal record Mariadb : Mysql {
 }

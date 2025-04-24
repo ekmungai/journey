@@ -1,3 +1,4 @@
+/// <inheritdoc/>
 public record Migration : DatabaseAction, IReversible {
     private readonly Rollback _rollback;
 
@@ -6,9 +7,11 @@ public record Migration : DatabaseAction, IReversible {
         _rollback = new Rollback(database, sections, logger);
     }
 
+    /// <inheritdoc/>
     public async Task Migrate() {
         await Execute();
     }
 
+    /// <inheritdoc/>
     public async Task Rollback() => await _rollback.Reverse();
 }

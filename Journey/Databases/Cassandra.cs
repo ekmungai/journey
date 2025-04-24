@@ -1,11 +1,11 @@
 
 using Cassandra;
-
+/// <inheritdoc/>
 internal record CassandraDb : IDatabase {
     private readonly CassandraDialect _dialect = new();
     private string _key_space;
     private ISession _session;
-
+    /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString) {
         var cluster = Cluster.Builder()
                      .WithConnectionString(connectionString)
@@ -16,17 +16,17 @@ internal record CassandraDb : IDatabase {
         _session = cluster.Connect(_key_space);
         return this;
     }
-
+    /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString, string key_space) {
         _key_space = key_space;
         return await Connect(connectionString);
     }
-
+    /// <inheritdoc/>
     public async Task Execute(string query) {
         var statement = new SimpleStatement(query);
         await _session.ExecuteAsync(statement);
     }
-
+    /// <inheritdoc/>
     public async Task<int> CurrentVersion() {
         var statement = new SimpleStatement(_dialect.CurrentVersionQuery().Replace("versions", _key_space + ".versions"));
         try {
@@ -37,7 +37,7 @@ internal record CassandraDb : IDatabase {
             return -1;
         }
     }
-
+    /// <inheritdoc/>
     public async Task<List<Itinerary>> GetItinerary(int entries) {
         var history = new List<Itinerary>();
         var statement = new SimpleStatement(_dialect.HistoryQuery()
@@ -55,11 +55,13 @@ internal record CassandraDb : IDatabase {
         }
         return history;
     }
-
+    /// <inheritdoc/>
     public IDialect GetDialect() {
         return _dialect;
     }
-
+    /// <summary>
+    /// Disposes the database session
+    /// </summary>
     public void Dispose() {
         _session.Dispose();
     }

@@ -1,19 +1,22 @@
 
 using MySqlConnector;
-
+/// <inheritdoc/>
 internal record Mysql : IDatabase {
     private readonly SqlDialect _dbDialect = new MysqlDialect();
     private string _connectionString;
 
+    /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString) {
         _connectionString = connectionString;
         return this;
     }
 
+    /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString, string schema) {
         return await Connect(connectionString);
     }
 
+    /// <inheritdoc/>
     public async Task Execute(string query) {
         using var connection = new MySqlConnection(_connectionString);
         await connection.OpenAsync();
@@ -22,6 +25,7 @@ internal record Mysql : IDatabase {
         await command.ExecuteNonQueryAsync();
     }
 
+    /// <inheritdoc/>
     public async Task<int> CurrentVersion() {
         using var connection = new MySqlConnection(_connectionString);
         await connection.OpenAsync();
@@ -35,6 +39,7 @@ internal record Mysql : IDatabase {
         }
     }
 
+    /// <inheritdoc/>
     public async Task<List<Itinerary>> GetItinerary(int entries) {
         var history = new List<Itinerary>();
 
@@ -57,6 +62,7 @@ internal record Mysql : IDatabase {
         return history;
     }
 
+    /// <inheritdoc/>
     public IDialect GetDialect() {
         return _dbDialect;
     }

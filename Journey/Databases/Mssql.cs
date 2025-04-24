@@ -1,20 +1,22 @@
 
 using System.Data.SqlClient;
-
+/// <inheritdoc/>
 internal record Mssql : IDatabase {
     private readonly SqlDialect _dbDialect = new MssqlDialect();
     private string _connectionString;
 
+    /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString) {
         _connectionString = connectionString;
         return this;
     }
 
+    /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString, string schema) {
         return await Connect(connectionString);
     }
 
-
+    /// <inheritdoc/>
     public async Task Execute(string query) {
         using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync();
@@ -23,6 +25,7 @@ internal record Mssql : IDatabase {
         await command.ExecuteNonQueryAsync();
     }
 
+    /// <inheritdoc/>
     public async Task<int> CurrentVersion() {
         using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync();
@@ -36,6 +39,7 @@ internal record Mssql : IDatabase {
         }
     }
 
+    /// <inheritdoc/>
     public async Task<List<Itinerary>> GetItinerary(int entries) {
         var history = new List<Itinerary>();
 
@@ -58,6 +62,7 @@ internal record Mssql : IDatabase {
         return history;
     }
 
+    /// <inheritdoc/>
     public IDialect GetDialect() {
         return _dbDialect;
     }

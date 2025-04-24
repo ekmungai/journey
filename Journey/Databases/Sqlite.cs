@@ -1,24 +1,29 @@
 using System.Data.SQLite;
+/// <inheritdoc/>
 internal record Sqlite : IDatabase {
     private readonly SqlDialect _dialect = new SQliteDialect();
     private SQLiteConnection _connection;
 
+    /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString) {
         _connection = new SQLiteConnection(connectionString);
         await _connection.OpenAsync();
         return this;
     }
 
+    /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString, string schema) {
         return await Connect(connectionString);
     }
 
+    /// <inheritdoc/>
     public async Task Execute(string query) {
         var command = _connection.CreateCommand();
         command.CommandText = query;
         await command.ExecuteNonQueryAsync();
     }
 
+    /// <inheritdoc/>
     public async Task<int> CurrentVersion() {
         var command = _connection.CreateCommand();
         command.CommandText = _dialect.CurrentVersionQuery();
@@ -30,6 +35,7 @@ internal record Sqlite : IDatabase {
         }
     }
 
+    /// <inheritdoc/>
     public async Task<List<Itinerary>> GetItinerary(int entries) {
         var history = new List<Itinerary>();
         var command = _connection.CreateCommand();
@@ -47,10 +53,14 @@ internal record Sqlite : IDatabase {
         return history;
     }
 
+    /// <inheritdoc/>
     public IDialect GetDialect() {
         return _dialect;
     }
 
+    /// <summary>
+    /// Closes the connection to the database
+    /// </summary>
     public void Dispose() {
         _connection.Close();
     }

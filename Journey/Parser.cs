@@ -1,6 +1,7 @@
 using System.Text;
 
 #pragma warning disable CS8603 // Possible null reference return.
+/// <inheritdoc />
 internal class Parser : IParser {
     private int _openSection = 0;
     private int _openTransaction = 0;
@@ -16,6 +17,7 @@ internal class Parser : IParser {
     private readonly string[] _sectionEnd;
     public const string Migration = "Migration";
     public const string Rollback = "Rollback";
+    /// <inheritdoc />
     public Parser(string[] content, IDialect dialect) {
         _dialect = dialect;
         _scaffold = new Scaffold(dialect, null);
@@ -27,9 +29,13 @@ internal class Parser : IParser {
         _sectionEnd = [_scaffold.Scaffolding[6], _scaffold.Scaffolding[12]];
     }
 
-
+    /// <inheritdoc />
     public Dictionary<string, List<string>> GetResult() => _result;
 
+    /// <summary>
+    /// Represents the contents of the parsed file as a string.
+    /// </summary>
+    /// <returns>A string representation of the contents of the parsed file.</returns>
     public override string ToString() {
         var sb = new StringBuilder();
 

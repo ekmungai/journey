@@ -1,5 +1,6 @@
-internal record SQliteDialect() : SqlDialect
-{
+/// <inheritdoc/>
+internal record SQliteDialect() : SqlDialect {
+    /// <inheritdoc/>
     public override string MigrateVersionsTable() => """
             CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
@@ -9,6 +10,7 @@ internal record SQliteDialect() : SqlDialect
                 author TEXT NOT NULL
             );
             """;
+    /// <inheritdoc/>
     public override string InsertVersion() => """
             INSERT INTO versions (
                 version,
@@ -17,7 +19,7 @@ internal record SQliteDialect() : SqlDialect
                 author)
             VALUES ([versionNumber], '', '', '');
             """;
-
+    /// <inheritdoc/>
     public override string DeleteVersion() => "DELETE FROM versions WHERE version = [versionNumber];";
 
 }

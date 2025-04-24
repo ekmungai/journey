@@ -1,5 +1,5 @@
 using System.Text;
-
+/// <inheritdoc/>
 internal class Migrator(IFileManager fileManager, IDatabase database, ILogger logger, bool? loud) : IMigrator {
     private const string yes = "y|yes|Y|Yes";
     private List<int> _map = [];
@@ -7,7 +7,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
     private string _newLine = Environment.NewLine;
     private bool _loud = loud ?? false;
 
-
+    /// <inheritdoc/>
     public async Task Init(bool quiet) {
         await InitState();
 
@@ -25,7 +25,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
             }
         }
     }
-
+    /// <inheritdoc/>
     public async Task Scaffold() {
         await InitState();
 
@@ -43,7 +43,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
         }
         logger.Information(log);
     }
-
+    /// <inheritdoc/>
     public async Task Validate(int version) {
         try {
             var parser = await ParseVersion(version);
@@ -56,7 +56,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
             logger.Error(e, $"File for version {version} is invalid with error: '{e.Message}'");
         }
     }
-
+    /// <inheritdoc/>
     public async Task Migrate(int? target, bool? dryRun) {
         await InitState();
         var (currentVersion, newVersion) = GetVersions(target, 1);
@@ -73,7 +73,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
             logger.Information($"{_newLine}The database is up to date at Version: {currentVersion}{_newLine}");
         }
     }
-
+    /// <inheritdoc/>
     public async Task<string> History(int entries) {
         var diary = new StringBuilder();
         diary.AppendLine($"{_newLine}Version | RunTime \t\t\t| Description \t\t\t| RunBy \t| Author");
@@ -82,7 +82,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
         }
         return diary.ToString();
     }
-
+    /// <inheritdoc/>
     public async Task Rollback(int? target) {
         await InitState();
         var (currentVersion, newVersion) = GetVersions(target, -1);
@@ -94,9 +94,9 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
             logger.Information($"{_newLine}The database is up to date at Version: {currentVersion}{_newLine}");
         }
     }
-
+    /// <inheritdoc/>
     public async Task Update() {
-        await InitState();
+        await Init(true);
         var latest = _map[^1];
         await Migrate(latest, false);
     }
@@ -151,7 +151,6 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
                 logger.Information($"{_newLine}Rolling back version {waypoint}");
                 await migration.Rollback();
             }
-
 
         }
     }
