@@ -1,10 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
 using CommandLine;
 using OptionParser = CommandLine.Parser;
 
-[ExcludeFromCodeCoverage]
-internal class Program {
-    private static async Task Main(string[] args) {
+internal class Program
+{
+    private static async Task Main(string[] args)
+    {
         var options = (Options)OptionParser.Default.ParseArguments<
             ValidateOptions,
             ScaffoldOptions,
@@ -20,7 +20,6 @@ internal class Program {
         .WithParsed<UpdateOptions>(Options.RunOptions)
         .WithNotParsed(Options.HandleParseError).Value;
 
-        Console.ReadKey();
         var journey = new JourneyFacade(
             options.Database,
             options.Connection,
@@ -31,7 +30,8 @@ internal class Program {
         );
         await journey.Init(options.Quiet);
 
-        switch (options) {
+        switch (options)
+        {
             case ValidateOptions:
                 await journey.Validate(options.Target ?? 0);
                 break;
