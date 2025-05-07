@@ -29,7 +29,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
     public async Task Scaffold() {
         await InitState();
 
-        var version = _currentVersion++;
+        var version = _currentVersion + 1;
         var scaffold = new Scaffold(database.GetDialect(), version);
         logger.Information($"{_newLine}Scafffolding version: {version}");
         if (version == 0) {
@@ -44,7 +44,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
         logger.Information(log);
     }
     /// <inheritdoc/>
-    public async Task Validate(int version) {
+    public async Task<bool> Validate(int version) {
         try {
             var parser = await ParseVersion(version);
             var log = $"{_newLine}File for version {version} is valid";
@@ -52,8 +52,10 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
                 log += $" with the queries: {_newLine}" + parser.ToString();
             }
             logger.Information(log);
+            return true;
         } catch (Exception e) {
             logger.Error(e, $"File for version {version} is invalid with error: '{e.Message}'");
+            return false;
         }
     }
     /// <inheritdoc/>
@@ -95,10 +97,28 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
         }
     }
     /// <inheritdoc/>
-    public async Task Update() {
+    public async Task Update(int? target = null) {
         await Init(true);
+        int? upgrade = null;
+        int? downgrade = null;
         var latest = _map[^1];
-        await Migrate(latest, false);
+
+        if (target.HasValue && target.Value > _currentVersion) {
+            upgrade = target;
+        } else if (target.HasValue && target.Value < _currentVersion) {
+            downgrade = target;
+        } else if (_currentVersion < latest) {
+            upgrade = latest;
+        } else if (_currentVersion > latest) {
+            downgrade = latest;
+        }
+
+        if (upgrade.HasValue) {
+            await Migrate(upgrade, false);
+        }
+        if (downgrade.HasValue) {
+            await Rollback(downgrade);
+        }
     }
 
     private async Task<Parser> ParseVersion(int version) {

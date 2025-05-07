@@ -35,9 +35,9 @@ public class JourneyFacade(
     /// <inheritdoc/>
     public async Task Scaffold() => await _migrator.Scaffold();
     /// <inheritdoc/>
-    public async Task Update() => await _migrator.Update();
+    public async Task Update(int? target) => await _migrator.Update(target);
     /// <inheritdoc/>
-    public async Task Validate(int version) => await _migrator.Validate(version);
+    public async Task<bool> Validate(int version) => await _migrator.Validate(version);
     /// <inheritdoc/>
     public Task Init(bool quiet) => Init(quiet, new FileSystem());
     /// <inheritdoc/>

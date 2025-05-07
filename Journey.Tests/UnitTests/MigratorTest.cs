@@ -755,7 +755,7 @@ public class MigratorTest {
     }
 
     [Fact]
-    public async Task TestUpdateMigrateDatabase() {
+    public async Task TestUpdateDatabaseUpgradeToLatest() {
         string[] migration1 = [
             """
             -- ------------------------------------------------------------------
@@ -851,6 +851,10 @@ public class MigratorTest {
         .ReturnsAsync(1);
 
         _mocker.GetMock<IFileManager>()
+        .Setup(m => m.FileExists(0))
+        .Returns(true);
+
+        _mocker.GetMock<IFileManager>()
         .Setup(m => m.FileExists(2))
         .Returns(true);
 
@@ -868,6 +872,232 @@ public class MigratorTest {
         .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully migrated to version: 3{Environment.NewLine}"));
 
         await _migrator.Update();
+    }
+
+    [Fact]
+    public async Task TestUpdateDatabaseUpgradeToTarget() {
+        string[] migration1 = [
+            """
+            -- ------------------------------------------------------------------
+            -- | Migration file formatting rules.                               |
+            -- | 1. There must be one and only one migration and one and only   |
+            -- |    one rollback section.                                       |
+            -- | 2. Only change the section between transaction blocks.         | 
+            -- | 3. Each migration and rollback must have only one transaction. |                                       |
+            -- ******************************************************************
+            """, "",
+            "-- start migration", "",
+            "BEGIN;", "",
+            """
+                CREATE TABLE IF NOT EXISTS versions (
+                version INTEGER NOT NULL,
+                run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+                description varchar(1000) NOT NULL,
+                author varchar(100)
+            );
+            """, "",
+            "END;", "",
+            "-- end migration", "",
+            "-- start rollback", "",
+            "BEGIN;", "",
+            "DROP TABLE versions;", "",
+            "END;", "",
+            "-- end rollback", "",
+            ];
+
+        string[] migration2 = [
+            """
+            -- ------------------------------------------------------------------
+            -- | Migration file formatting rules.                               |
+            -- | 1. There must be one and only one migration and one and only   |
+            -- |    one rollback section.                                       |
+            -- | 2. Only change the section between transaction blocks.         | 
+            -- | 3. Each migration and rollback must have only one transaction. |                                       |
+            -- ******************************************************************
+            """, "",
+            "-- start migration", "",
+            "BEGIN;", "",
+            "CREATE TABLE test (column TEST);", "",
+            "END;", "",
+            "-- end migration", "",
+            "-- start rollback", "",
+            "BEGIN;", "",
+            "DROP TABLE test;", "",
+            "END;", "",
+            "-- end rollback", "",
+            ];
+
+        string[] migration3 = [
+            """
+            -- ------------------------------------------------------------------
+            -- | Migration file formatting rules.                               |
+            -- | 1. There must be one and only one migration and one and only   |
+            -- |    one rollback section.                                       |
+            -- | 2. Only change the section between transaction blocks.         | 
+            -- | 3. Each migration and rollback must have only one transaction. |                                       |
+            -- ******************************************************************
+            """, "",
+            "-- start migration", "",
+            "BEGIN;", "",
+            "ALTER TABLE test ADD COLUMN (column2 TEST);", "",
+            "END;", "",
+            "-- end migration", "",
+            "-- start rollback", "",
+            "BEGIN;", "",
+            "ALTER TABLE test DROP COLUMN (column2 TEST);", "",
+            "END;", "",
+            "-- end rollback", "",
+            ];
+
+        string[] migrationQueries = [
+            "BEGIN;",
+            "CREATE TABLE test (column TEST);",
+            "END;",
+        ];
+
+        _mocker.GetMock<IDatabase>()
+        .Setup(m => m.GetDialect())
+        .Returns(new SQliteDialect());
+
+        _mocker.GetMock<IFileManager>()
+        .Setup(m => m.GetMap())
+        .Returns([0, 1, 2, 3]);
+
+        _mocker.GetMock<IDatabase>()
+        .Setup(m => m.CurrentVersion())
+        .ReturnsAsync(1);
+
+        _mocker.GetMock<IFileManager>()
+        .Setup(m => m.FileExists(0))
+        .Returns(true);
+
+        _mocker.GetMock<IFileManager>()
+        .Setup(m => m.ReadFile(2))
+        .ReturnsAsync(migration2);
+
+        _mocker.GetMock<IFileManager>()
+        .Setup(m => m.ReadFile(3))
+        .ReturnsAsync(migration3);
+
+        SetupQueries(migrationQueries);
+
+        _mocker.GetMock<ILogger>()
+        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully migrated to version: 2{Environment.NewLine}"));
+
+        await _migrator.Update(2);
+    }
+
+    [Fact]
+    public async Task TestUpdateDatabaseDowngradeToTarget() {
+        string[] migration1 = [
+            """
+            -- ------------------------------------------------------------------
+            -- | Migration file formatting rules.                               |
+            -- | 1. There must be one and only one migration and one and only   |
+            -- |    one rollback section.                                       |
+            -- | 2. Only change the section between transaction blocks.         | 
+            -- | 3. Each migration and rollback must have only one transaction. |                                       |
+            -- ******************************************************************
+            """, "",
+            "-- start migration", "",
+            "BEGIN;", "",
+            """
+                CREATE TABLE IF NOT EXISTS versions (
+                version INTEGER NOT NULL,
+                run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+                description varchar(1000) NOT NULL,
+                author varchar(100)
+            );
+            """, "",
+            "END;", "",
+            "-- end migration", "",
+            "-- start rollback", "",
+            "BEGIN;", "",
+            "DROP TABLE versions;", "",
+            "END;", "",
+            "-- end rollback", "",
+            ];
+
+        string[] migration2 = [
+            """
+            -- ------------------------------------------------------------------
+            -- | Migration file formatting rules.                               |
+            -- | 1. There must be one and only one migration and one and only   |
+            -- |    one rollback section.                                       |
+            -- | 2. Only change the section between transaction blocks.         | 
+            -- | 3. Each migration and rollback must have only one transaction. |                                       |
+            -- ******************************************************************
+            """, "",
+            "-- start migration", "",
+            "BEGIN;", "",
+            "CREATE TABLE test (column TEST);", "",
+            "END;", "",
+            "-- end migration", "",
+            "-- start rollback", "",
+            "BEGIN;", "",
+            "DROP TABLE test;", "",
+            "END;", "",
+            "-- end rollback", "",
+            ];
+
+        string[] migration3 = [
+            """
+            -- ------------------------------------------------------------------
+            -- | Migration file formatting rules.                               |
+            -- | 1. There must be one and only one migration and one and only   |
+            -- |    one rollback section.                                       |
+            -- | 2. Only change the section between transaction blocks.         | 
+            -- | 3. Each migration and rollback must have only one transaction. |                                       |
+            -- ******************************************************************
+            """, "",
+            "-- start migration", "",
+            "BEGIN;", "",
+            "ALTER TABLE test ADD COLUMN (column2 TEST);", "",
+            "END;", "",
+            "-- end migration", "",
+            "-- start rollback", "",
+            "BEGIN;", "",
+            "ALTER TABLE test DROP COLUMN (column2 TEST);", "",
+            "END;", "",
+            "-- end rollback", "",
+            ];
+
+        string[] migrationQueries = [
+            "BEGIN;",
+            "ALTER TABLE test DROP COLUMN (column2 TEST);",
+            "END;"
+        ];
+
+        _mocker.GetMock<IDatabase>()
+        .Setup(m => m.GetDialect())
+        .Returns(new SQliteDialect());
+
+        _mocker.GetMock<IFileManager>()
+        .Setup(m => m.GetMap())
+        .Returns([0, 1, 2, 3]);
+
+        _mocker.GetMock<IDatabase>()
+        .Setup(m => m.CurrentVersion())
+        .ReturnsAsync(3);
+
+        _mocker.GetMock<IFileManager>()
+        .Setup(m => m.FileExists(0))
+        .Returns(true);
+
+        _mocker.GetMock<IFileManager>()
+        .Setup(m => m.FileExists(3))
+        .Returns(true);
+
+        _mocker.GetMock<IFileManager>()
+        .Setup(m => m.ReadFile(3))
+        .ReturnsAsync(migration3);
+
+        SetupQueries(migrationQueries);
+
+        _mocker.GetMock<ILogger>()
+        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: 2{Environment.NewLine}"));
+
+        await _migrator.Update(2);
     }
 
     [Fact]

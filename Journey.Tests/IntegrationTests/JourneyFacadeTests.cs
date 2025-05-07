@@ -1,11 +1,9 @@
 
 using System.IO.Abstractions.TestingHelpers;
-using Moq.AutoMock;
 
 namespace Journey.Tests.IntegrationTests;
 
 public class JourneyFacadeTest {
-    private readonly AutoMocker _mocker = new(Moq.MockBehavior.Loose);
     private readonly JourneyFacade _journeyFacade;
     private readonly string _versionsDir = "versions";
     private readonly string[] versions = [
@@ -158,7 +156,7 @@ public class JourneyFacadeTest {
             "Data Source=:memory:",
             _versionsDir,
             null,
-            _mocker.GetMock<ILogger>().Object,
+            new Logger(),
             true
         );
     }
@@ -169,10 +167,8 @@ public class JourneyFacadeTest {
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
 
         await _journeyFacade.Init(true, _fileSystem);
-        await _journeyFacade.Validate(0);
 
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}File for version 0 is valid with the queries: {Environment.NewLine}"));
+        Assert.True(await _journeyFacade.Validate(0));
     }
 
     [Fact]
@@ -218,10 +214,8 @@ public class JourneyFacadeTest {
             ));
 
         await _journeyFacade.Init(true, _fileSystem);
-        await _journeyFacade.Validate(0);
 
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"File for version 0 is invalid with error: 'The migration file is malformed at: BEGIN;'"));
+        Assert.False(await _journeyFacade.Validate(0));
     }
 
     [Fact]
@@ -231,8 +225,7 @@ public class JourneyFacadeTest {
         await _journeyFacade.Init(true, _fileSystem);
         await _journeyFacade.Migrate(null, false);
 
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully migrated to version: 0{Environment.NewLine}"));
+        await AssertDatabaseVersion(0);
     }
 
     [Fact]
@@ -245,8 +238,8 @@ public class JourneyFacadeTest {
         await _journeyFacade.Init(true, _fileSystem);
         await _journeyFacade.Migrate(2, false);
 
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully migrated to version: 2{Environment.NewLine}"));
+
+        await AssertDatabaseVersion(2);
     }
 
     [Fact]
@@ -254,12 +247,11 @@ public class JourneyFacadeTest {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         await _journeyFacade.Init(true, _fileSystem);
-        await _journeyFacade.Update();
+        await _journeyFacade.Update(null);
 
         await _journeyFacade.Migrate(0, false);
 
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database is up to date at Version: 0{Environment.NewLine}"));
+        await AssertDatabaseVersion(0);
     }
 
     [Fact]
@@ -269,8 +261,7 @@ public class JourneyFacadeTest {
         await _journeyFacade.Init(true, _fileSystem);
         await _journeyFacade.Migrate(null, true);
 
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}"));
+        await AssertDatabaseVersion(-1);
     }
 
     [Fact]
@@ -283,8 +274,7 @@ public class JourneyFacadeTest {
         await _journeyFacade.Init(true, _fileSystem);
         await _journeyFacade.Migrate(2, true);
 
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}"));
+        await AssertDatabaseVersion(-1);
     }
 
     [Fact]
@@ -304,7 +294,7 @@ public class JourneyFacadeTest {
         _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
 
         await _journeyFacade.Init(true, _fileSystem);
-        await _journeyFacade.Update();
+        await _journeyFacade.Update(null);
 
         var ex = await Assert.ThrowsAsync<InvalidMigrationException>(async () => await _journeyFacade.Migrate(1, false));
         Assert.Equal("Cannot migrate to a lower version. Target: 1 < Current: 2", ex.Message);
@@ -319,7 +309,7 @@ public class JourneyFacadeTest {
         _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
 
         await _journeyFacade.Init(true, _fileSystem);
-        await _journeyFacade.Update();
+        await _journeyFacade.Update(null);
 
         var history = await _journeyFacade.History(10);
         Assert.Contains($"{Environment.NewLine}Version | RunTime \t\t\t| Description \t\t\t| RunBy \t| Author", history);
@@ -335,7 +325,7 @@ public class JourneyFacadeTest {
         _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
         _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
         await _journeyFacade.Init(true, _fileSystem);
-        await _journeyFacade.Update();
+        await _journeyFacade.Update(null);
 
         var history = await _journeyFacade.History(1);
         Assert.Contains($"{Environment.NewLine}Version | RunTime \t\t\t| Description \t\t\t| RunBy \t| Author", history);
@@ -344,17 +334,46 @@ public class JourneyFacadeTest {
     }
 
     [Fact]
-    public async Task TestUpdateMigrateDatabase() {
+    public async Task TestUpdateDatabaseUpgradeToLatest() {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
         _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
         _fileSystem.AddFile(Path.Combine(_versionsDir, "3.sql"), new MockFileData(versions[3]));
         await _journeyFacade.Init(true, _fileSystem);
-        await _journeyFacade.Update();
+        await _journeyFacade.Update(null);
 
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully migrated to version: 3{Environment.NewLine}"));
+        await AssertDatabaseVersion(3);
+    }
+
+    [Fact]
+    public async Task TestUpdateDatabaseUpgradeToTarget() {
+        var _fileSystem = new MockFileSystem();
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "3.sql"), new MockFileData(versions[3]));
+
+        await _journeyFacade.Init(true, _fileSystem);
+        await _journeyFacade.Update(2);
+
+        await AssertDatabaseVersion(2);
+    }
+
+    [Fact]
+    public async Task TestUpdateDatabaseDowngradeToTarget() {
+        var _fileSystem = new MockFileSystem();
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "3.sql"), new MockFileData(versions[3]));
+
+        await _journeyFacade.Init(true, _fileSystem);
+        await _journeyFacade.Update(null);
+
+        await _journeyFacade.Update(2);
+
+        await AssertDatabaseVersion(2);
     }
 
     [Fact]
@@ -365,8 +384,7 @@ public class JourneyFacadeTest {
         await _journeyFacade.Migrate(null, false);
         await _journeyFacade.Rollback(null);
 
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}"));
+        await AssertDatabaseVersion(-1);
     }
 
     [Fact]
@@ -377,12 +395,11 @@ public class JourneyFacadeTest {
         _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
         _fileSystem.AddFile(Path.Combine(_versionsDir, "3.sql"), new MockFileData(versions[3]));
         await _journeyFacade.Init(true, _fileSystem);
-        await _journeyFacade.Update();
+        await _journeyFacade.Update(null);
 
         await _journeyFacade.Rollback(-1);
 
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}"));
+        await AssertDatabaseVersion(-1);
     }
 
     [Fact]
@@ -390,12 +407,11 @@ public class JourneyFacadeTest {
         var _fileSystem = new MockFileSystem();
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         await _journeyFacade.Init(true, _fileSystem);
-        await _journeyFacade.Update();
+        await _journeyFacade.Update(null);
 
         await _journeyFacade.Rollback(0);
 
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database is up to date at Version: 0{Environment.NewLine}"));
+        await AssertDatabaseVersion(0);
     }
 
     [Fact]
@@ -404,7 +420,7 @@ public class JourneyFacadeTest {
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
         await _journeyFacade.Init(true, _fileSystem);
-        await _journeyFacade.Update();
+        await _journeyFacade.Update(null);
 
         var ex = await Assert.ThrowsAsync<InvalidRollbackException>(async () => await _journeyFacade.Rollback(2));
         Assert.Equal("Cannot rollback to a higher version. Target: 2 > Current: 1", ex.Message);
@@ -418,4 +434,9 @@ public class JourneyFacadeTest {
         await Assert.ThrowsAsync<InvalidRollbackException>(async () => await _journeyFacade.Rollback(null));
     }
 
+    private async Task AssertDatabaseVersion(int version) {
+        var db = _journeyFacade.GetDatabase();
+        var newVersion = await db.CurrentVersion();
+        Assert.Equal(version, newVersion);
+    }
 }

@@ -19,8 +19,8 @@ public interface IMigrator {
     /// </summary>
     /// <param name="version">The version whose file is to be validated.</param>
     /// <returns cref="Task"></returns>
-    /// <returns></returns>
-    public Task Validate(int version);
+    /// <returns>True if the file for the version is valid, false if not.</returns>
+    public Task<bool> Validate(int version);
     /// <summary>
     /// Updates the Database up to the target version if one is provided, and to the highest available version if not. 
     /// </summary>
@@ -42,8 +42,8 @@ public interface IMigrator {
     /// <returns cref="Task"></returns>
     public Task<string> History(int entries);
     /// <summary>
-    /// Updates or restores the Database to the state of the highest available version.
+    /// Migrates or rolls back the Database to the given target, or to the highest available version if none is specified.
     /// </summary>
     /// <returns cref="Task"></returns>
-    public Task Update();
+    public Task Update(int? target = null);
 }
