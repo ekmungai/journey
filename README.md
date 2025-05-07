@@ -1,4 +1,5 @@
-# Welcome to Journey
+# Welcome to Journey 
+![build](https://github.com/github/docs/actions/workflows/dotnet.yml/badge.svg)
 
 Journey is a script based database migration tool designed on the idea that a migration is a specialized kind of journey, and since every journey is a collection of steps it emphasizes on the steps taken from the beginning (origin) state of the database to the final (destination) state.
 
