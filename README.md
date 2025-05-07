@@ -12,10 +12,10 @@ Using stepwise migration decouples the deployment of the code from the versionin
 ### Enhanced Developer Experience
 By allowing them to up and downgrade their local database to any step in the migration journey, the tool allows fine control over the data in contact with the sections of code that each developer/team is working on, while at the same time still maintaining sync across the organization since all migration scripts are checked into version control. This can be particlarly useful when revisiting legacy code to be refactored/optimsed.
 
-### Usage
+## Usage
 You can make use of Journey my referencing it as a Nuget package, or downloading the Command tool.
 
-### Supported Databases
+## Supported Databases
  - Sql Databases
     - Postgres
         - CoackroachDb
@@ -27,8 +27,8 @@ You can make use of Journey my referencing it as a Nuget package, or downloading
  - NoSql Databases
     - Cassandra
 
-### Documentation
+## Documentation
 You can read extensive documentation about Journey on readthedocs.io.
 
-### Changelog
+## Changelog
 Details of changes made are documented for each release.
