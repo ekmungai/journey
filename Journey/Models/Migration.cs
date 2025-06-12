@@ -8,10 +8,10 @@ public record Migration : DatabaseAction, IReversible {
     }
 
     /// <inheritdoc/>
-    public async Task Migrate() {
-        await Execute();
+    public async Task Migrate(bool verbose) {
+        await Execute(verbose);
     }
 
     /// <inheritdoc/>
-    public async Task Rollback() => await _rollback.Reverse();
+    public async Task Rollback(bool verbose) => await _rollback.Reverse(verbose);
 }

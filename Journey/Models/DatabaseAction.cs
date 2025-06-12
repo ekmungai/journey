@@ -4,11 +4,11 @@ public abstract record DatabaseAction(IDatabase database, Action<string> logger)
     protected readonly IDatabase _database = database;
 
     /// <inheritdoc/>
-    public async Task Execute() {
+    public async Task Execute(bool verbose) {
         foreach (var query in _queries) {
-#if DEBUG
-            logger($"> {query}");
-#endif
+            if (verbose) {
+                logger($"> {query}");
+            }
             await database.Execute(query.Trim());
         }
     }

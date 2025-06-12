@@ -6,7 +6,7 @@ public class JourneyFacade(
     string versionsDir,
     string? schema,
     ILogger? logger,
-    bool? loud
+    bool? verbose
 ) : IJourneyFacade, IDisposable {
     internal Migrator _migrator;
     internal IDatabase _database;
@@ -23,7 +23,7 @@ public class JourneyFacade(
             "mssql" => await new Mssql().Connect(connectionString),
             _ => await new Sqlite().Connect(connectionString),
         };
-        _migrator = new Migrator(new FileManager(versionsDir, _fileSystem ?? new FileSystem()), _database, _logger, loud);
+        _migrator = new Migrator(new FileManager(versionsDir, _fileSystem ?? new FileSystem()), _database, _logger, verbose);
         await _migrator.Init(quiet);
     }
     /// <inheritdoc/>

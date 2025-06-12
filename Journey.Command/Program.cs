@@ -1,10 +1,8 @@
 using CommandLine;
 using OptionParser = CommandLine.Parser;
 
-internal class Program
-{
-    private static async Task Main(string[] args)
-    {
+internal class Program {
+    private static async Task Main(string[] args) {
         var options = (Options)OptionParser.Default.ParseArguments<
             ValidateOptions,
             ScaffoldOptions,
@@ -14,7 +12,6 @@ internal class Program
             UpdateOptions>(args)
         .WithParsed<ValidateOptions>(Options.RunOptions)
         .WithParsed<ScaffoldOptions>(Options.RunOptions)
-        .WithParsed<MigrateOptions>(Options.RunOptions)
         .WithParsed<MigrateOptions>(Options.RunOptions)
         .WithParsed<RollbackOptions>(Options.RunOptions)
         .WithParsed<UpdateOptions>(Options.RunOptions)
@@ -26,12 +23,11 @@ internal class Program
             options.VersionsDir,
             options.Schema,
             null,
-            options.Loud
+            options.Verbose
         );
         await journey.Init(options.Quiet);
 
-        switch (options)
-        {
+        switch (options) {
             case ValidateOptions:
                 await journey.Validate(options.Target ?? 0);
                 break;
@@ -48,7 +44,7 @@ internal class Program
                 await journey.History(options.Entries);
                 break;
             case UpdateOptions:
-                await journey.Update();
+                await journey.Update(options.Target ?? 0);
                 break;
             default:
                 throw new InvalidOperationException();

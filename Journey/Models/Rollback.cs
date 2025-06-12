@@ -5,7 +5,7 @@ public record Rollback : DatabaseAction {
     }
 
     /// <inheritdoc/>
-    public async Task Reverse() {
-        await Execute();
+    public async Task Reverse(bool verbose) {
+        await Execute(verbose);
     }
 }

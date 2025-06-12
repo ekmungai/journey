@@ -5,7 +5,7 @@ public interface IMigrator {
     /// <summary>
     /// Initializes the Database for migrations by creating the versions table.
     /// </summary>
-    /// <param name="quiet">Determines whether the user should be promted before creating the versions table.</param>
+    /// <param name="quiet">Determines whether the user should be prompted before creating the versions table.</param>
     /// <returns cref="Task"></returns>
     public Task Init(bool quiet);
     /// <summary>

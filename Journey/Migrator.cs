@@ -1,11 +1,11 @@
 using System.Text;
 /// <inheritdoc/>
-internal class Migrator(IFileManager fileManager, IDatabase database, ILogger logger, bool? loud) : IMigrator {
+internal class Migrator(IFileManager fileManager, IDatabase database, ILogger logger, bool? verbose) : IMigrator {
     private const string yes = "y|yes|Y|Yes";
     private List<int> _map = [];
     private int _currentVersion;
     private string _newLine = Environment.NewLine;
-    private bool _loud = loud ?? false;
+    private bool _verbose = verbose ?? false;
 
     /// <inheritdoc/>
     public async Task Init(bool quiet) {
@@ -13,12 +13,12 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
 
         if (!fileManager.FileExists(0)) {
             if (quiet) {
-                await Scaffold();
+                await MigrateInit();
             } else {
                 logger.Information($"{_newLine}Migrations have not been initialized. Would you like to do so now? [Y/n]");
                 var answer = Console.ReadLine();
                 if (answer != null && yes.Contains(answer)) {
-                    await Scaffold();
+                    await MigrateInit();
                 } else {
                     Environment.Exit(-1);
                 }
@@ -32,13 +32,10 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
         var version = _currentVersion + 1;
         var scaffold = new Scaffold(database.GetDialect(), version);
         logger.Information($"{_newLine}Scafffolding version: {version}");
-        if (version == 0) {
-            scaffold.ScaffoldInit();
-        }
         var content = scaffold.ToString();
         await fileManager.WriteFile(version, content);
         var log = $"Version: {version} scaffolded";
-        if (_loud) {
+        if (_verbose) {
             log += $"with content {_newLine}{_newLine} {content}";
         }
         logger.Information(log);
@@ -48,7 +45,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
         try {
             var parser = await ParseVersion(version);
             var log = $"{_newLine}File for version {version} is valid";
-            if (_loud) {
+            if (_verbose) {
                 log += $" with the queries: {_newLine}" + parser.ToString();
             }
             logger.Information(log);
@@ -165,11 +162,11 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
             var migration = new Migration(database, parser.GetResult(), logger.Debug);
             if (direction > 0) {
                 logger.Information($"{_newLine}Migrating version {waypoint}");
-                await migration.Migrate();
+                await migration.Migrate(_verbose);
 
             } else {
                 logger.Information($"{_newLine}Rolling back version {waypoint}");
-                await migration.Rollback();
+                await migration.Rollback(_verbose);
             }
 
         }
@@ -195,5 +192,13 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
             _map = fileManager.GetMap();
         }
         _currentVersion = await database.CurrentVersion();
+    }
+
+    private async Task MigrateInit() {
+        var scaffold = new Scaffold(database.GetDialect(), 0);
+        scaffold.ScaffoldInit();
+        var content = scaffold.ToString();
+        await fileManager.WriteFile(0, content);
+        await Migrate(0, false);
     }
 }
