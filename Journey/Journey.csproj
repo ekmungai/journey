@@ -5,7 +5,7 @@
         <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <PackageId>EMungai.Journey</PackageId>
+        <PackageId>Ekmungai.Journey</PackageId>
         <Authors>Edward Mungai</Authors>
         <Title>Journey</Title>
         <Company>Microbooks.io</Company>
@@ -14,10 +14,22 @@
         <Description>
             Journey is a script based database migration tool that treats a migration a journey, a
             collection of steps taken from the beginning (origin) state of the database to the final
-            (destination) state. You can view its full documentation at -
-            For this release see notes - https://https://ekmungai.github.io/journey-docs/
+            (destination) state.
         </Description>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://ekmungai.github.io/journey-docs/</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/ekmungai/journey</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageIcon>logo.png</PackageIcon>
+        <Copyright>Copyright © Edward Mungai 2025</Copyright>
     </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../LICENSE" Pack="true" PackagePath="" />
+        <None Include="../README.md" Pack="true" PackagePath="" />
+        <None Include="../logo.png" Pack="true" PackagePath="" />
+    </ItemGroup>
 
     <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
