@@ -14,7 +14,7 @@ internal class Options {
 
     // optional options
     [Option('s', "schema", Default = "public", HelpText = "The schema to apply the migration to.")]
-    public string Schema { get; init; }
+    public string? Schema { get; init; }
 
     [Option('q', "quiet", Default = false, HelpText = "Run the action without prompts.")]
     public bool Quiet { get; init; }

@@ -8,8 +8,8 @@ public class JourneyFacade(
     ILogger? logger,
     bool? verbose
 ) : IJourneyFacade, IDisposable {
-    internal Migrator _migrator;
-    internal IDatabase _database;
+    internal Migrator _migrator = default!;
+    internal IDatabase _database = default!;
     private ILogger _logger = logger ?? new Logger();
 
     public async Task Init(bool quiet, IFileSystem? _fileSystem = null) {

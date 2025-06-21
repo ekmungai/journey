@@ -2,7 +2,7 @@ using System.Data.SQLite;
 /// <inheritdoc/>
 internal record Sqlite : IDatabase {
     private readonly SqlDialect _dialect = new SQliteDialect();
-    private SQLiteConnection _connection;
+    private SQLiteConnection _connection = default!;
 
     /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString) {

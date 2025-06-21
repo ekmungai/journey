@@ -2,13 +2,13 @@ using Npgsql;
 /// <inheritdoc/>
 internal record Postgres : IDatabase {
     private readonly SqlDialect _dialect = new PostgresDialect();
-    private string _connectionString;
-    private string _schema;
+    private string _connectionString = default!;
+    private string _schema = default!;
 
     /// <inheritdoc/>
-    public async Task<IDatabase> Connect(string connectionString) {
+    public Task<IDatabase> Connect(string connectionString) {
         _connectionString = connectionString;
-        return this;
+        return Task.FromResult((IDatabase)this);
     }
 
     /// <inheritdoc/>

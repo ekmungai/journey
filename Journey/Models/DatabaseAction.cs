@@ -1,6 +1,6 @@
 /// <inheritdoc/>
 public abstract record DatabaseAction(IDatabase database, Action<string> logger) : IExecutable {
-    protected List<string> _queries;
+    protected List<string> _queries = default!;
     protected readonly IDatabase _database = database;
 
     /// <inheritdoc/>

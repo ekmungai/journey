@@ -3,12 +3,12 @@ using System.Data.SqlClient;
 /// <inheritdoc/>
 internal record Mssql : IDatabase {
     private readonly SqlDialect _dbDialect = new MssqlDialect();
-    private string _connectionString;
+    private string _connectionString = default!;
 
     /// <inheritdoc/>
-    public async Task<IDatabase> Connect(string connectionString) {
+    public Task<IDatabase> Connect(string connectionString) {
         _connectionString = connectionString;
-        return this;
+        return Task.FromResult((IDatabase)this);
     }
 
     /// <inheritdoc/>

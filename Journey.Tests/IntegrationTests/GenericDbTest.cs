@@ -6,14 +6,14 @@ public abstract class GenericDbTests<T>(T _container) : IClassFixture<T> where T
 
     [Fact]
     public async Task TestGetCurrentVersionUninitialized() {
-        await _database.Connect(_container.GetConnectionString(), _container.GetSchema());
+        await _database.Connect(_container.GetConnectionString(), _container.GetSchema()!);
         await ClearVersionsTable();
         Assert.Equal(-1, await _database.CurrentVersion());
     }
 
     [Fact]
     public async Task TestGetCurrentVersionInitialized() {
-        await _database.Connect(_container.GetConnectionString(), _container.GetSchema());
+        await _database.Connect(_container.GetConnectionString(), _container.GetSchema()!);
         await ClearVersionsTable();
         await SetupVersionsTable();
 
@@ -32,13 +32,13 @@ public abstract class GenericDbTests<T>(T _container) : IClassFixture<T> where T
 
     [Fact]
     public async Task TestExecute() {
-        await _database.Connect(_container.GetConnectionString(), _container.GetSchema());
+        await _database.Connect(_container.GetConnectionString(), _container.GetSchema()!);
         await _database.Execute(_container.GetValidQuery());
     }
 
     [Fact]
     public async Task TestExecuteThrows() {
-        await _database.Connect(_container.GetConnectionString(), _container.GetSchema());
+        await _database.Connect(_container.GetConnectionString(), _container.GetSchema()!);
         try {
             await _database.Execute(_container.GetInValidQuery());
         } catch (Exception e) {
@@ -48,7 +48,7 @@ public abstract class GenericDbTests<T>(T _container) : IClassFixture<T> where T
 
     [Fact]
     public async Task TestGetItinerary() {
-        await _database.Connect(_container.GetConnectionString(), _container.GetSchema());
+        await _database.Connect(_container.GetConnectionString(), _container.GetSchema()!);
         await SetupVersionsTable();
 
         List<string> queries = _container.GetVersionEntries();

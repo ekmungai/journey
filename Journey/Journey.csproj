@@ -1,9 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\shared\shared.props" />
 
     <PropertyGroup>
         <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <PackageId>EMungai.Journey</PackageId>
+        <Authors>Edward Mungai</Authors>
+        <Title>Journey</Title>
+        <Company>Microbooks.io</Company>
+        <PackageTags>mysql cli cassandra dotnet sqlite scripts postgresql journey migration mariadb
+            mssql cockroachdb csharp-library stepwise </PackageTags>
+        <Description>
+            Journey is a script based database migration tool that treats a migration a journey, a
+            collection of steps taken from the beginning (origin) state of the database to the final
+            (destination) state. You can view its full documentation at -
+            For this release see notes - https://https://ekmungai.github.io/journey-docs/
+        </Description>
     </PropertyGroup>
 
     <ItemGroup>
@@ -11,6 +24,7 @@
             <_Parameter1>Journey.Tests</_Parameter1>
         </AssemblyAttribute>
     </ItemGroup>
+
     <ItemGroup>
         <PackageReference Include="CassandraCSharpDriver" Version="3.22.0" />
         <PackageReference Include="MySql.Data" Version="9.2.0" />

@@ -3,10 +3,10 @@ using Cassandra;
 /// <inheritdoc/>
 internal record CassandraDb : IDatabase {
     private readonly CassandraDialect _dialect = new();
-    private string _key_space;
-    private ISession _session;
+    private string _key_space = default!;
+    private ISession _session = default!;
     /// <inheritdoc/>
-    public async Task<IDatabase> Connect(string connectionString) {
+    public Task<IDatabase> Connect(string connectionString) {
         var cluster = Cluster.Builder()
                      .WithConnectionString(connectionString)
                      .Build();
@@ -14,7 +14,7 @@ internal record CassandraDb : IDatabase {
         systemSesion.Execute(_dialect.CreateKeySpace().Replace("[key_space]", _key_space));
         systemSesion.Dispose();
         _session = cluster.Connect(_key_space);
-        return this;
+        return Task.FromResult((IDatabase)this);
     }
     /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString, string key_space) {
