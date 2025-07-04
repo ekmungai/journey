@@ -1,6 +1,7 @@
 using Npgsql;
 /// <inheritdoc/>
 internal record Postgres : IDatabase {
+    public const string Name = "postgres";
     private readonly SqlDialect _dialect = new PostgresDialect();
     private string _connectionString = default!;
     private string _schema = default!;

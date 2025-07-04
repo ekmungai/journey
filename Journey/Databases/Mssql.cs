@@ -2,6 +2,7 @@
 using System.Data.SqlClient;
 /// <inheritdoc/>
 internal record Mssql : IDatabase {
+    public const string Name = "mssql";
     private readonly SqlDialect _dbDialect = new MssqlDialect();
     private string _connectionString = default!;
 

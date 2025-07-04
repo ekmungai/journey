@@ -2,6 +2,7 @@
 using Cassandra;
 /// <inheritdoc/>
 internal record CassandraDb : IDatabase {
+    public const string Name = "cassandra";
     private readonly CassandraDialect _dialect = new();
     private string _key_space = default!;
     private ISession _session = default!;

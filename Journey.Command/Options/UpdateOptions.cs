@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using CommandLine;
 
 [Verb("update", HelpText = "Bring the database up to the latest version.")]

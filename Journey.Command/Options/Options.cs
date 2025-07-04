@@ -1,7 +1,6 @@
-using System.Diagnostics.CodeAnalysis;
 using CommandLine;
 
-internal class Options {
+public class Options {
     // Required options
     [Option('p', "path", Required = true, HelpText = "The path to the versions directory.")]
     public required string VersionsDir { get; init; }

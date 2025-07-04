@@ -1,6 +1,8 @@
 using System.Data.SQLite;
+using System.Reflection.Metadata;
 /// <inheritdoc/>
 internal record Sqlite : IDatabase {
+    public const string Name = "sqlite";
     private readonly SqlDialect _dialect = new SQliteDialect();
     private SQLiteConnection _connection = default!;
 

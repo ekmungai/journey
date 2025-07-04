@@ -14,13 +14,14 @@ public class JourneyFacade(
 
     public async Task Init(bool quiet, IFileSystem? _fileSystem = null) {
         _database = databaseType switch {
-            "sqlite" => await new Sqlite().Connect(connectionString),
-            "postgres" => await new Postgres().Connect(connectionString, schema!),
-            "timescaledb" => await new TimescaleDb().Connect(connectionString, schema!),
-            "cockroachdb" => await new CockroachDb().Connect(connectionString, schema!),
-            "mysql" => await new Mysql().Connect(connectionString, schema!),
-            "mariadb" => await new Mariadb().Connect(connectionString, schema!),
-            "mssql" => await new Mssql().Connect(connectionString),
+            Sqlite.Name => await new Sqlite().Connect(connectionString),
+            Postgres.Name => await new Postgres().Connect(connectionString, schema!),
+            TimescaleDb.Name => await new TimescaleDb().Connect(connectionString, schema!),
+            CockroachDb.Name => await new CockroachDb().Connect(connectionString, schema!),
+            Mysql.Name => await new Mysql().Connect(connectionString, schema!),
+            Mariadb.Name => await new Mariadb().Connect(connectionString, schema!),
+            Mssql.Name => await new Mssql().Connect(connectionString),
+            CassandraDb.Name => await new CassandraDb().Connect(connectionString),
             _ => await new Sqlite().Connect(connectionString),
         };
         _migrator = new Migrator(new FileManager(versionsDir, _fileSystem ?? new FileSystem()), _database, _logger, verbose);

@@ -2,6 +2,7 @@
 using MySqlConnector;
 /// <inheritdoc/>
 internal record Mysql : IDatabase {
+    public const string Name = "mysql";
     private readonly SqlDialect _dbDialect = new MysqlDialect();
     private string _connectionString = default!;
 
