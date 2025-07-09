@@ -43,6 +43,7 @@ CodeCoverage/
 .vscode/*
 versions/*
 *.db
+.sql
 publish/*
 scripts/*
 

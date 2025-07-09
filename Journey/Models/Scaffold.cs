@@ -43,6 +43,7 @@ internal record Scaffold {
             _endRollback
         }.Select(s => dialect.Comment() + " " + s)];
 
+        var end = dialect.DeleteVersion();
         _scaffolding.Insert(2, dialect.StartTransaction());
         _scaffolding.Insert(4, dialect.InsertVersion().Replace("[versionNumber]", version.ToString()));
         _scaffolding.Insert(5, dialect.EndTransaction());

@@ -19,4 +19,7 @@ internal record MysqlDialect() : SqlDialect {
                 author)
             VALUES ([versionNumber], '', '', '');
             """;
+
+    /// <inheritdoc/>
+    public override string EndTransaction() => "COMMIT;";
 }

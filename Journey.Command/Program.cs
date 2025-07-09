@@ -1,53 +1,64 @@
-using CommandLine;
-using OptionParser = CommandLine.Parser;
 
 internal class Program {
-    private static async Task Main(string[] args) {
-        var options = (Options)OptionParser.Default.ParseArguments<
-            ValidateOptions,
-            ScaffoldOptions,
-            MigrateOptions,
-            HistoryOptions,
-            RollbackOptions,
-            UpdateOptions>(args)
-        .WithParsed<ValidateOptions>(Options.RunOptions)
-        .WithParsed<ScaffoldOptions>(Options.RunOptions)
-        .WithParsed<MigrateOptions>(Options.RunOptions)
-        .WithParsed<RollbackOptions>(Options.RunOptions)
-        .WithParsed<UpdateOptions>(Options.RunOptions)
-        .WithNotParsed(Options.HandleParseError).Value;
+    private static async Task<int> Main(string[] args) {
 
-        var journey = new JourneyFacade(
-            options.Database,
-            options.Connection,
-            options.VersionsDir,
-            options.Schema,
-            null,
-            options.Verbose
-        );
-        await journey.Init(options.Quiet);
+        var command = new JourneyCommand();
 
-        switch (options) {
-            case ValidateOptions:
-                await journey.Validate(options.Target ?? 0);
-                break;
-            case ScaffoldOptions:
-                await journey.Scaffold();
-                break;
-            case MigrateOptions:
-                await journey.Migrate(options.Target ?? 0, options.DryRun);
-                break;
-            case RollbackOptions:
-                await journey.Rollback(options.Target ?? 0);
-                break;
-            case HistoryOptions:
-                await journey.History(options.Entries);
-                break;
-            case UpdateOptions:
-                await journey.Update(options.Target ?? 0);
-                break;
-            default:
-                throw new InvalidOperationException();
+        return await command.Build(
+            RunScaffold,
+            RunMigrate,
+            RunRollback,
+            RunValidate,
+            RunHistory,
+            RunUpdate
+        ).InvokeAsync(args);
+    }
+
+    private static async Task RunScaffold(string path, string connection, string database, string schema, bool quiet, bool verbose) {
+        ValidateOptions(path);
+        var journey = new JourneyFacade(database, connection, path, schema, null, verbose);
+        await journey.Init(quiet);
+        await journey.Scaffold();
+    }
+
+    private static async Task RunMigrate(string path, string connection, string database, string schema, bool quiet, int? target, bool verbose, bool dryRun) {
+        ValidateOptions(path);
+        var journey = new JourneyFacade(database, connection, path, schema, null, verbose);
+        await journey.Init(quiet);
+        await journey.Migrate(target, dryRun);
+    }
+
+    private static async Task RunRollback(string path, string connection, string database, string schema, bool quiet, int? target, bool verbose) {
+        ValidateOptions(path);
+        var journey = new JourneyFacade(database, connection, path, schema, null, verbose);
+        await journey.Init(quiet);
+        await journey.Rollback(target);
+    }
+
+    private static async Task RunValidate(string path, string connection, string database, string schema, bool quiet, int? target, bool verbose) {
+        ValidateOptions(path);
+        var journey = new JourneyFacade(database, connection, path, schema, null, verbose);
+        await journey.Init(quiet);
+        await journey.Validate(target ?? 0);
+    }
+
+    private static async Task RunHistory(string path, string connection, string database, string schema, bool quiet, int entries, bool verbose) {
+        ValidateOptions(path);
+        var journey = new JourneyFacade(database, connection, path, schema, null, verbose);
+        await journey.Init(quiet);
+        await journey.History(entries);
+    }
+
+    private static async Task RunUpdate(string path, string connection, string database, string schema, bool quiet, int? target, bool verbose) {
+        ValidateOptions(path);
+        var journey = new JourneyFacade(database, connection, path, schema, null, verbose);
+        await journey.Init(quiet);
+        await journey.Update(target);
+    }
+
+    private static void ValidateOptions(string path) {
+        if (!Directory.Exists(path)) {
+            throw new DirectoryNotFoundException("Versions directory is invalid");
         }
     }
 }

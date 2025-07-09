@@ -79,7 +79,9 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
         foreach (var Itinerary in await database.GetItinerary(entries)) {
             diary.AppendLine(Itinerary.ToString());
         }
-        return diary.ToString();
+        var report = diary.ToString();
+        logger.Information($"{report}");
+        return report;
     }
     /// <inheritdoc/>
     public async Task Rollback(int? target) {

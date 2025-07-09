@@ -9,7 +9,7 @@ internal abstract record SqlDialect() : IDialect {
     /// <inheritdoc/>
     public virtual string EndTransaction() => "END;";
     /// <inheritdoc/>
-    public virtual string DeleteVersion() => "DELETE FROM versions WHERE version = [versionNumber]";
+    public virtual string DeleteVersion() => "DELETE FROM versions WHERE version = [versionNumber];";
     /// <inheritdoc/>
     public virtual string RollbackVersionsTable() => "DROP TABLE versions;";
     /// <inheritdoc/>
