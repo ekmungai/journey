@@ -1,16 +1,19 @@
 using System.IO.Abstractions;
+using Microsoft.Extensions.Logging;
 /// <inheritdoc/>
 public class JourneyFacade(
     string databaseType,
     string connectionString,
     string versionsDir,
     string? schema,
-    ILogger? logger,
     bool? verbose
 ) : IJourneyFacade, IDisposable {
     internal Migrator _migrator = default!;
     internal IDatabase _database = default!;
-    private ILogger _logger = logger ?? new Logger();
+
+    private void SetLogger(ILogger logger) {
+        _migrator.SetLogger(logger);
+    }
 
     public async Task Init(bool quiet, IFileSystem? _fileSystem = null) {
         _database = databaseType switch {
@@ -24,7 +27,7 @@ public class JourneyFacade(
             CassandraDb.Name => await new CassandraDb().Connect(connectionString),
             _ => await new Sqlite().Connect(connectionString),
         };
-        _migrator = new Migrator(new FileManager(versionsDir, _fileSystem ?? new FileSystem()), _database, _logger, verbose);
+        _migrator = new Migrator(new FileManager(versionsDir, _fileSystem ?? new FileSystem()), _database, verbose);
         await _migrator.Init(quiet);
     }
     /// <inheritdoc/>
@@ -45,4 +48,16 @@ public class JourneyFacade(
     public void Dispose() => _database.Dispose();
     /// <inheritdoc/>
     public IDatabase GetDatabase() => _database;
+
+    public void UseSerilogLogging(Serilog.ILogger logger) {
+        SetLogger(new SerilogLogger(logger));
+    }
+
+    public void UseMicrosoftLogging(Microsoft.Extensions.Logging.ILogger logger) {
+        SetLogger(new MicrosoftLogger(logger));
+    }
+
+    public void UseMicrosoftLogging(ILoggerFactory loggerFactory) {
+        SetLogger(new MicrosoftLogger(loggerFactory));
+    }
 }

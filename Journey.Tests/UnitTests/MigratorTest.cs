@@ -4,16 +4,12 @@ using Moq.AutoMock;
 
 namespace Journey.Tests.UnitTests;
 
-public class MigratorTest {
+public class MigratorTest : IDisposable {
     private readonly IMigrator _migrator;
     private readonly AutoMocker _mocker = new(MockBehavior.Loose); // testing strings is such a pain >_<
 
     public MigratorTest() {
-        _migrator = new Migrator(
-            _mocker.GetMock<IFileManager>().Object,
-            _mocker.GetMock<IDatabase>().Object,
-            _mocker.GetMock<ILogger>().Object,
-            true);
+        _migrator = new Migrator(_mocker.GetMock<IFileManager>().Object, _mocker.GetMock<IDatabase>().Object, true);
     }
 
     [Fact]
@@ -31,11 +27,12 @@ public class MigratorTest {
             "-- start migration",
             "BEGIN;",
             """
-                CREATE TABLE IF NOT EXISTS versions (
+            CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
-                run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(1000) NOT NULL,
-                author varchar(100)
+                run_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                description TEXT NOT NULL,
+                run_by TEXT NOT NULL,
+                author TEXT NOT NULL
             );
             """,
             "END;",
@@ -81,11 +78,12 @@ public class MigratorTest {
             "-- start migration", "",
             "BEGIN;", "",
             """
-                CREATE TABLE IF NOT EXISTS versions (
+            CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
-                run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(1000) NOT NULL,
-                author varchar(100)
+                run_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                description TEXT NOT NULL,
+                run_by TEXT NOT NULL,
+                author TEXT NOT NULL
             );
             """, "",
             "END;", "",
@@ -102,17 +100,10 @@ public class MigratorTest {
         .Returns(new SQliteDialect());
 
         _mocker.GetMock<IFileManager>()
-        .Setup(m => m.GetMap())
-        .Returns([0]);
-
-        _mocker.GetMock<IFileManager>()
         .Setup(m => m.ReadFile(0))
         .ReturnsAsync(content);
 
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}File for version 0 is valid with the queries: {Environment.NewLine}"));
-
-        await _migrator.Validate(0);
+        Assert.True(await _migrator.Validate(0));
     }
 
     [Fact]
@@ -152,17 +143,10 @@ public class MigratorTest {
         .Returns(new SQliteDialect());
 
         _mocker.GetMock<IFileManager>()
-        .Setup(m => m.GetMap())
-        .Returns([0]);
-
-        _mocker.GetMock<IFileManager>()
         .Setup(m => m.ReadFile(0))
         .ReturnsAsync(content);
-
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"File for version 0 is invalid with error: 'The migration file is malformed at: BEGIN;'"));
-
-        await _migrator.Validate(0);
+        
+        Assert.False(await _migrator.Validate(0));
     }
 
     [Fact]
@@ -221,18 +205,11 @@ public class MigratorTest {
         .ReturnsAsync(-1);
 
         _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(0))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
         .Setup(m => m.ReadFile(0))
         .ReturnsAsync(content);
 
         SetupQueries(queries);
-
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully migrated to version: 0{Environment.NewLine}"));
-
+        
         await _migrator.Migrate(null, false);
     }
 
@@ -343,18 +320,6 @@ public class MigratorTest {
         .ReturnsAsync(-1);
 
         _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(0))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(1))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(2))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
         .Setup(m => m.ReadFile(0))
         .ReturnsAsync(migration1);
 
@@ -367,10 +332,7 @@ public class MigratorTest {
         .ReturnsAsync(migration3);
 
         SetupQueries(migrationQueries);
-
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully migrated to version: 2{Environment.NewLine}"));
-
+        
         await _migrator.Migrate(2, false);
     }
 
@@ -435,18 +397,10 @@ public class MigratorTest {
         .ReturnsAsync(0);
 
         _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(0))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
         .Setup(m => m.ReadFile(0))
         .ReturnsAsync(content);
 
         SetupQueries(queries);
-
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}"));
-
         await _migrator.Migrate(null, true);
     }
 
@@ -569,18 +523,6 @@ public class MigratorTest {
         .ReturnsAsync(2);
 
         _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(0))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(1))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(2))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
         .Setup(m => m.ReadFile(0))
         .ReturnsAsync(migration1);
 
@@ -594,60 +536,11 @@ public class MigratorTest {
 
         SetupQueries(migrationQueries);
 
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}"));
-
         await _migrator.Migrate(2, true);
     }
 
     [Fact]
     public async Task TestMigrateUpToDateDatabase() {
-        string[] content = [
-            """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
-            """, "",
-            "-- start migration", "",
-            "BEGIN;", "",
-            """
-                CREATE TABLE IF NOT EXISTS versions (
-                version INTEGER NOT NULL,
-                run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(1000) NOT NULL,
-                author varchar(100)
-            );
-            """, "",
-            "END;", "",
-            "-- end migration", "",
-            "-- start rollback", "",
-            "BEGIN;", "",
-            "DROP TABLE versions;", "",
-            "END;", "",
-            "-- end rollback", "",
-            ];
-
-        string[] queries = [
-            "BEGIN;",
-            """
-            CREATE TABLE IF NOT EXISTS versions (
-                version INTEGER NOT NULL,
-                run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(1000) NOT NULL,
-                author varchar(100)
-            );
-            """,
-            "END;"
-        ];
-
-        _mocker.GetMock<IDatabase>()
-        .Setup(m => m.GetDialect())
-        .Returns(new SQliteDialect());
-
         _mocker.GetMock<IFileManager>()
         .Setup(m => m.GetMap())
         .Returns([0]);
@@ -655,26 +548,12 @@ public class MigratorTest {
         _mocker.GetMock<IDatabase>()
         .Setup(m => m.CurrentVersion())
         .ReturnsAsync(0);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(0))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.ReadFile(0))
-        .ReturnsAsync(content);
-
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database is up to date at Version: 0{Environment.NewLine}"));
-
+        
         await _migrator.Migrate(0, false);
     }
 
     [Fact]
     public async Task TestMissingMigrationFileThrows() {
-        _mocker.GetMock<IDatabase>()
-        .Setup(m => m.GetDialect())
-        .Returns(new SQliteDialect());
 
         _mocker.GetMock<IFileManager>()
         .Setup(m => m.GetMap())
@@ -684,19 +563,12 @@ public class MigratorTest {
         .Setup(m => m.CurrentVersion())
         .ReturnsAsync(3);
 
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(4))
-        .Returns(true);
-
         var ex = await Assert.ThrowsAsync<MissingMigrationFileException>(async () => await _migrator.Migrate(4, false));
         Assert.Equal("Migration file for version 4 was not found", ex.Message);
     }
 
     [Fact]
     public async Task TestLowerVersionMigrationThrows() {
-        _mocker.GetMock<IDatabase>()
-        .Setup(m => m.GetDialect())
-        .Returns(new SQliteDialect());
 
         _mocker.GetMock<IFileManager>()
         .Setup(m => m.GetMap())
@@ -712,9 +584,6 @@ public class MigratorTest {
 
     [Fact]
     public async Task TestHistoryDefaultEntries() {
-        _mocker.GetMock<IDatabase>()
-        .Setup(m => m.GetDialect())
-        .Returns(new SQliteDialect());
 
         var timeOne = DateTimeOffset.Now.AddDays(-7);
         var timeTwo = DateTimeOffset.Now;
@@ -735,9 +604,6 @@ public class MigratorTest {
 
     [Fact]
     public async Task TestHistoryLimitedEntries() {
-        _mocker.GetMock<IDatabase>()
-        .Setup(m => m.GetDialect())
-        .Returns(new SQliteDialect());
 
         var timeOne = DateTimeOffset.Now.AddDays(-7);
         var timeTwo = DateTimeOffset.Now;
@@ -756,35 +622,6 @@ public class MigratorTest {
 
     [Fact]
     public async Task TestUpdateDatabaseUpgradeToLatest() {
-        string[] migration1 = [
-            """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
-            """, "",
-            "-- start migration", "",
-            "BEGIN;", "",
-            """
-                CREATE TABLE IF NOT EXISTS versions (
-                version INTEGER NOT NULL,
-                run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(1000) NOT NULL,
-                author varchar(100)
-            );
-            """, "",
-            "END;", "",
-            "-- end migration", "",
-            "-- start rollback", "",
-            "BEGIN;", "",
-            "DROP TABLE versions;", "",
-            "END;", "",
-            "-- end rollback", "",
-            ];
-
         string[] migration2 = [
             """
             -- ------------------------------------------------------------------
@@ -843,20 +680,16 @@ public class MigratorTest {
         .Returns(new SQliteDialect());
 
         _mocker.GetMock<IFileManager>()
+            .Setup(m => m.FileExists(0))
+            .Returns(true);
+
+        _mocker.GetMock<IFileManager>()
         .Setup(m => m.GetMap())
         .Returns([0, 1, 2, 3]);
 
         _mocker.GetMock<IDatabase>()
         .Setup(m => m.CurrentVersion())
         .ReturnsAsync(1);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(0))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(2))
-        .Returns(true);
 
         _mocker.GetMock<IFileManager>()
         .Setup(m => m.ReadFile(2))
@@ -867,44 +700,11 @@ public class MigratorTest {
         .ReturnsAsync(migration3);
 
         SetupQueries(migrationQueries);
-
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully migrated to version: 3{Environment.NewLine}"));
-
         await _migrator.Update();
     }
 
     [Fact]
     public async Task TestUpdateDatabaseUpgradeToTarget() {
-        string[] migration1 = [
-            """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
-            """, "",
-            "-- start migration", "",
-            "BEGIN;", "",
-            """
-                CREATE TABLE IF NOT EXISTS versions (
-                version INTEGER NOT NULL,
-                run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(1000) NOT NULL,
-                author varchar(100)
-            );
-            """, "",
-            "END;", "",
-            "-- end migration", "",
-            "-- start rollback", "",
-            "BEGIN;", "",
-            "DROP TABLE versions;", "",
-            "END;", "",
-            "-- end rollback", "",
-            ];
-
         string[] migration2 = [
             """
             -- ------------------------------------------------------------------
@@ -963,83 +763,25 @@ public class MigratorTest {
         .Setup(m => m.GetMap())
         .Returns([0, 1, 2, 3]);
 
+        _mocker.GetMock<IFileManager>()
+            .Setup(m => m.FileExists(0))
+            .Returns(true);
+
         _mocker.GetMock<IDatabase>()
         .Setup(m => m.CurrentVersion())
         .ReturnsAsync(1);
 
         _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(0))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
         .Setup(m => m.ReadFile(2))
         .ReturnsAsync(migration2);
 
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.ReadFile(3))
-        .ReturnsAsync(migration3);
-
         SetupQueries(migrationQueries);
-
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully migrated to version: 2{Environment.NewLine}"));
-
+        
         await _migrator.Update(2);
     }
 
     [Fact]
     public async Task TestUpdateDatabaseDowngradeToTarget() {
-        string[] migration1 = [
-            """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
-            """, "",
-            "-- start migration", "",
-            "BEGIN;", "",
-            """
-                CREATE TABLE IF NOT EXISTS versions (
-                version INTEGER NOT NULL,
-                run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(1000) NOT NULL,
-                author varchar(100)
-            );
-            """, "",
-            "END;", "",
-            "-- end migration", "",
-            "-- start rollback", "",
-            "BEGIN;", "",
-            "DROP TABLE versions;", "",
-            "END;", "",
-            "-- end rollback", "",
-            ];
-
-        string[] migration2 = [
-            """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
-            """, "",
-            "-- start migration", "",
-            "BEGIN;", "",
-            "CREATE TABLE test (column TEST);", "",
-            "END;", "",
-            "-- end migration", "",
-            "-- start rollback", "",
-            "BEGIN;", "",
-            "DROP TABLE test;", "",
-            "END;", "",
-            "-- end rollback", "",
-            ];
-
         string[] migration3 = [
             """
             -- ------------------------------------------------------------------
@@ -1073,6 +815,10 @@ public class MigratorTest {
         .Returns(new SQliteDialect());
 
         _mocker.GetMock<IFileManager>()
+            .Setup(m => m.FileExists(0))
+            .Returns(true);
+
+        _mocker.GetMock<IFileManager>()
         .Setup(m => m.GetMap())
         .Returns([0, 1, 2, 3]);
 
@@ -1081,21 +827,10 @@ public class MigratorTest {
         .ReturnsAsync(3);
 
         _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(0))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(3))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
         .Setup(m => m.ReadFile(3))
         .ReturnsAsync(migration3);
 
         SetupQueries(migrationQueries);
-
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: 2{Environment.NewLine}"));
 
         await _migrator.Update(2);
     }
@@ -1147,23 +882,16 @@ public class MigratorTest {
         .Setup(m => m.GetMap())
         .Returns([0]);
 
+
         _mocker.GetMock<IDatabase>()
         .Setup(m => m.CurrentVersion())
         .ReturnsAsync(0);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(0))
-        .Returns(true);
 
         _mocker.GetMock<IFileManager>()
         .Setup(m => m.ReadFile(0))
         .ReturnsAsync(content);
 
         SetupQueries(queries);
-
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}"));
-
         await _migrator.Rollback(null);
     }
 
@@ -1269,18 +997,6 @@ public class MigratorTest {
         .ReturnsAsync(2);
 
         _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(0))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(1))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(2))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
         .Setup(m => m.ReadFile(0))
         .ReturnsAsync(migration1);
 
@@ -1293,56 +1009,12 @@ public class MigratorTest {
         .ReturnsAsync(migration3);
 
         SetupQueries(migrationQueries);
-
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database was succesfully rolled back to version: -1{Environment.NewLine}"));
-
+        
         await _migrator.Rollback(-1);
     }
 
     [Fact]
     public async Task TestRollbackUpToDateDatabase() {
-        string[] content = [
-            """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
-            """, "",
-            "-- start migration", "",
-            "BEGIN;", "",
-            """
-                CREATE TABLE IF NOT EXISTS versions (
-                version INTEGER NOT NULL,
-                run_time TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-                description varchar(1000) NOT NULL,
-                author varchar(100)
-            );
-            """, "",
-            "END;", "",
-            "-- end migration", "",
-            "-- start rollback", "",
-            "BEGIN;", "",
-            "DROP TABLE versions;", "",
-            "END;", "",
-            "-- end rollback", "",
-            ];
-
-        string[] queries = [
-            "BEGIN;",
-            """
-            DROP TABLE versions;
-            """,
-            "END;"
-        ];
-
-        _mocker.GetMock<IDatabase>()
-        .Setup(m => m.GetDialect())
-        .Returns(new SQliteDialect());
-
         _mocker.GetMock<IFileManager>()
         .Setup(m => m.GetMap())
         .Returns([0]);
@@ -1350,27 +1022,12 @@ public class MigratorTest {
         _mocker.GetMock<IDatabase>()
         .Setup(m => m.CurrentVersion())
         .ReturnsAsync(0);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.FileExists(0))
-        .Returns(true);
-
-        _mocker.GetMock<IFileManager>()
-        .Setup(m => m.ReadFile(0))
-        .ReturnsAsync(content);
-
-        _mocker.GetMock<ILogger>()
-        .Setup(l => l.Information($"{Environment.NewLine}The database is up to date at Version: 0{Environment.NewLine}"));
-
+        
         await _migrator.Rollback(0);
     }
 
     [Fact]
     public async Task TestHigherVersionRollbackThrows() {
-        _mocker.GetMock<IDatabase>()
-        .Setup(m => m.GetDialect())
-        .Returns(new SQliteDialect());
-
         _mocker.GetMock<IFileManager>()
         .Setup(m => m.GetMap())
         .Returns([]);
@@ -1385,9 +1042,6 @@ public class MigratorTest {
 
     [Fact]
     public async Task TestImpossibleRollbackThrows() {
-        _mocker.GetMock<IDatabase>()
-        .Setup(m => m.GetDialect())
-        .Returns(new SQliteDialect());
 
         _mocker.GetMock<IFileManager>()
         .Setup(m => m.GetMap())
@@ -1408,5 +1062,9 @@ public class MigratorTest {
         foreach (var query in queries) {
             database.Setup(d => d.Execute(query.Trim()));
         }
+    }
+
+    public void Dispose() {
+        _mocker.VerifyAll();
     }
 }

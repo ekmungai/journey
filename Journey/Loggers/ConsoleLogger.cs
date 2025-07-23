@@ -1,11 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 /// <inheritdoc/>
 [ExcludeFromCodeCoverage]
-public class Logger : ILogger {
+public class ConsoleLogger : ILogger {
     /// <inheritdoc/>
     public virtual void Debug(string message) => Console.WriteLine(message);
-    /// <inheritdoc/>
-    public virtual void Error(string message) => Console.WriteLine(message);
     /// <inheritdoc/>
     public virtual void Error(Exception ex, string message) => Console.WriteLine($"Message: {message}, Exception: {ex}");
     /// <inheritdoc/>

@@ -1,11 +1,17 @@
 
+using System.Collections;
 using System.IO.Abstractions.TestingHelpers;
+using System.Reflection;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Moq.AutoMock;
 
 namespace Journey.Tests.IntegrationTests;
 
-public class JourneyFacadeTest {
+public class JourneyFacadeTest : IDisposable {
     private readonly JourneyFacade _journeyFacade;
-    private readonly string _versionsDir = "versions";
+    private readonly string _versionsDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +"../../../../versions";
+    private readonly AutoMocker _mocker = new(MockBehavior.Loose); // testing strings is such a pain >_<
     private readonly string[] versions = [
             """
             -- ------------------------------------------------------------------
@@ -156,9 +162,194 @@ public class JourneyFacadeTest {
             "Data Source=:memory:",
             _versionsDir,
             null,
-            new Logger(),
             true
         );
+    }
+
+    [Fact]
+    public async Task TestSerilogLoggerInformation() {
+        var _fileSystem = new MockFileSystem();
+        _fileSystem.AddDirectory(_versionsDir);
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
+        await _journeyFacade.Init(true, _fileSystem);
+        
+        var logger = _mocker.GetMock<Serilog.ILogger>().Object;
+        _journeyFacade.UseSerilogLogging(logger);
+        
+        _mocker.GetMock<Serilog.ILogger>()
+            .Setup(m => m.Information(It.Is<string>(
+                log => log.Contains("File for version 0 is valid with the queries:")
+            )));
+        
+        Assert.True(await _journeyFacade.Validate(0));
+    }
+
+    [Fact]
+    public async Task TestSerilogLoggerError() {
+        var _fileSystem = new MockFileSystem();
+        _fileSystem.AddDirectory(_versionsDir);
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(
+            """
+            -- ------------------------------------------------------------------
+            -- | Migration file formatting rules.                               |
+            -- | 1. There must be one and only one migration and one and only   |
+            -- |    one rollback section.                                       |
+            -- | 2. Only change the section between transaction blocks.         | 
+            -- | 3. Each migration and rollback must have only one transaction. |                                       |
+            -- ******************************************************************
+
+            -- start migration
+
+            BEGIN;
+
+            CREATE TABLE IF NOT EXISTS versions (
+                version INTEGER NOT NULL,
+                run_time TIMESTAMP  DEFAULT CURRENT_TIMESTAMP,
+                description TEXT NOT NULL,
+                run_by TEXT NOT NULL,
+                author TEXT NOT NULL
+            );
+
+            BEGIN;
+            END;
+
+            -- end migration
+
+            -- start rollback
+
+            BEGIN;
+
+            DROP TABLE versions;
+
+            END;
+
+            -- end rollback
+            """
+        ));
+
+        await _journeyFacade.Init(true, _fileSystem);
+        
+        var logger = _mocker.GetMock<Serilog.ILogger>().Object;
+        _journeyFacade.UseSerilogLogging(logger);
+        
+        _mocker.GetMock<Serilog.ILogger>()
+            .Setup(m => m.Error(It.IsAny<InvalidFormatException>(), It.Is<string>(
+                log => log.Contains("File for version 0 is invalid with error:")
+            )));
+        
+        Assert.False(await _journeyFacade.Validate(0));
+    }
+
+    [Fact]
+    public async Task TestSerilogLoggerDebug() {
+        var _fileSystem = new MockFileSystem();
+        _fileSystem.AddDirectory(_versionsDir);
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
+        await _journeyFacade.Init(true, _fileSystem);
+        
+        var logger = _mocker.GetMock<Serilog.ILogger>().Object;
+        _journeyFacade.UseSerilogLogging(logger);
+        
+        _mocker.GetMock<Serilog.ILogger>()
+            .Setup(m => m.Debug( It.Is<string>(
+                log => log.Contains("> BEGIN;")
+            )));
+        
+        await _journeyFacade.Migrate(null, false);
+
+        await AssertDatabaseVersion(0);
+    }
+
+    [Fact]
+    public async Task TestMicrosoftLoggerInformation() {
+        var _fileSystem = new MockFileSystem();
+        _fileSystem.AddDirectory(_versionsDir);
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
+        await _journeyFacade.Init(true, _fileSystem);
+        
+        var logger = _mocker.GetMock<Microsoft.Extensions.Logging.ILogger>().Object;
+        _journeyFacade.UseMicrosoftLogging(logger);
+        
+        Assert.True(await _journeyFacade.Validate(0));
+        
+        // Cannot verify extension methods, so we check the contents of the invocations list
+        var invocation = _mocker.GetMock<Microsoft.Extensions.Logging.ILogger>()
+            .Invocations[0];
+        Assert.Equal(LogLevel.Information, invocation.Arguments[0]);
+    }
+
+    [Fact]
+    public async Task TestMicrosoftLoggerError() {
+        var _fileSystem = new MockFileSystem();
+        _fileSystem.AddDirectory(_versionsDir);
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(
+            """
+            -- ------------------------------------------------------------------
+            -- | Migration file formatting rules.                               |
+            -- | 1. There must be one and only one migration and one and only   |
+            -- |    one rollback section.                                       |
+            -- | 2. Only change the section between transaction blocks.         | 
+            -- | 3. Each migration and rollback must have only one transaction. |                                       |
+            -- ******************************************************************
+
+            -- start migration
+
+            BEGIN;
+
+            CREATE TABLE IF NOT EXISTS versions (
+                version INTEGER NOT NULL,
+                run_time TIMESTAMP  DEFAULT CURRENT_TIMESTAMP,
+                description TEXT NOT NULL,
+                run_by TEXT NOT NULL,
+                author TEXT NOT NULL
+            );
+
+            BEGIN;
+            END;
+
+            -- end migration
+
+            -- start rollback
+
+            BEGIN;
+
+            DROP TABLE versions;
+
+            END;
+
+            -- end rollback
+            """
+        ));
+
+        await _journeyFacade.Init(true, _fileSystem);
+        
+        var logger = _mocker.GetMock<Microsoft.Extensions.Logging.ILogger>().Object;
+        _journeyFacade.UseMicrosoftLogging(logger);
+        
+        Assert.False(await _journeyFacade.Validate(0));
+        
+        // Cannot verify extension methods, so we check the contents of the invocations list
+        var invocation = _mocker.GetMock<Microsoft.Extensions.Logging.ILogger>()
+            .Invocations[0];
+        Assert.Equal(LogLevel.Error, invocation.Arguments[0]);
+    }
+
+    [Fact]
+    public async Task TestMicrosoftLoggerDebug() {
+        var _fileSystem = new MockFileSystem();
+        _fileSystem.AddDirectory(_versionsDir);
+        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
+        await _journeyFacade.Init(true, _fileSystem);
+        
+        var logger = _mocker.GetMock<Microsoft.Extensions.Logging.ILogger>().Object;
+        _journeyFacade.UseMicrosoftLogging(logger);
+        
+        await _journeyFacade.Migrate(null, false);
+        
+        // Cannot verify extension methods, so we check the contents of the invocations list
+        var invocation = _mocker.GetMock<Microsoft.Extensions.Logging.ILogger>()
+            .Invocations[1];
+        Assert.Equal(LogLevel.Debug, invocation.Arguments[0]);
     }
 
     [Fact]
@@ -167,7 +358,6 @@ public class JourneyFacadeTest {
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
 
         await _journeyFacade.Init(true, _fileSystem);
-
         Assert.True(await _journeyFacade.Validate(0));
     }
 
@@ -237,7 +427,6 @@ public class JourneyFacadeTest {
 
         await _journeyFacade.Init(true, _fileSystem);
         await _journeyFacade.Migrate(2, false);
-
 
         await AssertDatabaseVersion(2);
     }
@@ -438,5 +627,10 @@ public class JourneyFacadeTest {
         var db = _journeyFacade.GetDatabase();
         var newVersion = await db.CurrentVersion();
         Assert.Equal(version, newVersion);
+    }
+
+    public void Dispose() {
+        _journeyFacade.Dispose();
+        _mocker.VerifyAll();
     }
 }

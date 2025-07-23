@@ -13,11 +13,6 @@ public interface ILogger {
     /// <param name="message">The message to log.</param>
     void Debug(string message);
     /// <summary>
-    /// Reports errors in the operation of the library.
-    /// </summary>
-    /// <param name="message">The error to report.</param>
-    void Error(string message);
-    /// <summary>
     /// Reports errors in the operation of the library, including details of the exception that was raised.
     /// </summary>
     /// <param name="ex">The exception that was raised.</param>

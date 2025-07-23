@@ -25,7 +25,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Journey\Journey.csproj" />
     </ItemGroup>
-
+    
     <ItemGroup>
         <Using Include="Xunit" />
     </ItemGroup>

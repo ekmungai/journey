@@ -1,11 +1,16 @@
 using System.Text;
 /// <inheritdoc/>
-internal class Migrator(IFileManager fileManager, IDatabase database, ILogger logger, bool? verbose) : IMigrator {
+internal class Migrator(IFileManager fileManager, IDatabase database, bool? verbose) : IMigrator {
     private const string yes = "y|yes|Y|Yes";
     private List<int> _map = [];
     private int _currentVersion;
     private string _newLine = Environment.NewLine;
     private bool _verbose = verbose ?? false;
+    private ILogger _logger = new ConsoleLogger();
+
+    internal void SetLogger(ILogger logger) {
+        _logger = logger;
+    }
 
     /// <inheritdoc/>
     public async Task Init(bool quiet) {
@@ -15,7 +20,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
             if (quiet) {
                 await MigrateInit();
             } else {
-                logger.Information($"{_newLine}Migrations have not been initialized. Would you like to do so now? [Y/n]");
+                _logger.Information($"{_newLine}Migrations have not been initialized. Would you like to do so now? [Y/n]");
                 var answer = Console.ReadLine();
                 if (answer != null && yes.Contains(answer)) {
                     await MigrateInit();
@@ -31,14 +36,14 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
 
         var version = _currentVersion + 1;
         var scaffold = new Scaffold(database.GetDialect(), version);
-        logger.Information($"{_newLine}Scafffolding version: {version}");
+        _logger.Information($"{_newLine}Scafffolding version: {version}");
         var content = scaffold.ToString();
         await fileManager.WriteFile(version, content);
         var log = $"Version: {version} scaffolded";
         if (_verbose) {
             log += $"with content {_newLine}{_newLine} {content}";
         }
-        logger.Information(log);
+        _logger.Information(log);
     }
     /// <inheritdoc/>
     public async Task<bool> Validate(int version) {
@@ -46,12 +51,12 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
             var parser = await ParseVersion(version);
             var log = $"{_newLine}File for version {version} is valid";
             if (_verbose) {
-                log += $" with the queries: {_newLine}" + parser.ToString();
+                log += $" with the queries: {_newLine}" + parser;
             }
-            logger.Information(log);
+            _logger.Information(log);
             return true;
         } catch (Exception e) {
-            logger.Error(e, $"File for version {version} is invalid with error: '{e.Message}'");
+            _logger.Error(e, $"File for version {version} is invalid with error: '{e.Message}'");
             return false;
         }
     }
@@ -63,13 +68,13 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
         if (route.Count > 0) {
             await Travel(route, 1);
             if (dryRun.GetValueOrDefault()) {
-                logger.Information($"{_newLine}INFO: Dry run mode is enabled, rolling back migration changes");
+                _logger.Information($"{_newLine}INFO: Dry run mode is enabled, rolling back migration changes");
                 await Rollback(currentVersion);
             } else {
-                logger.Information($"{_newLine}The database was succesfully migrated to version: {newVersion}{_newLine}");
+                _logger.Information($"{_newLine}The database was successfully migrated to version: {newVersion}{_newLine}");
             }
         } else {
-            logger.Information($"{_newLine}The database is up to date at Version: {currentVersion}{_newLine}");
+            _logger.Information($"{_newLine}The database is up to date at Version: {currentVersion}{_newLine}");
         }
     }
     /// <inheritdoc/>
@@ -80,7 +85,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
             diary.AppendLine(Itinerary.ToString());
         }
         var report = diary.ToString();
-        logger.Information($"{report}");
+        _logger.Information($"{report}");
         return report;
     }
     /// <inheritdoc/>
@@ -90,9 +95,9 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
         var route = GetRoute(currentVersion, newVersion, -1);
         if (route.Count > 0) {
             await Travel(route, -1);
-            logger.Information($"{_newLine}The database was succesfully rolled back to version: {newVersion}{_newLine}");
+            _logger.Information($"{_newLine}The database was succesfully rolled back to version: {newVersion}{_newLine}");
         } else {
-            logger.Information($"{_newLine}The database is up to date at Version: {currentVersion}{_newLine}");
+            _logger.Information($"{_newLine}The database is up to date at Version: {currentVersion}{_newLine}");
         }
     }
     /// <inheritdoc/>
@@ -156,18 +161,18 @@ internal class Migrator(IFileManager fileManager, IDatabase database, ILogger lo
 
     private async Task Travel(List<int> route, int direction) {
         if (route.Count > 1) {
-            logger.Information($"{_newLine}Migration route is: {string.Join(" -> ", route)}");
+            _logger.Information($"{_newLine}Migration route is: {string.Join(" -> ", route)}");
         }
         foreach (var waypoint in route) {
 
             var parser = await ParseVersion(waypoint);
-            var migration = new Migration(database, parser.GetResult(), logger.Debug);
+            var migration = new Migration(database, parser.GetResult(), _logger.Debug);
             if (direction > 0) {
-                logger.Information($"{_newLine}Migrating version {waypoint}");
+                _logger.Information($"{_newLine}Migrating version {waypoint}");
                 await migration.Migrate(_verbose);
 
             } else {
-                logger.Information($"{_newLine}Rolling back version {waypoint}");
+                _logger.Information($"{_newLine}Rolling back version {waypoint}");
                 await migration.Rollback(_verbose);
             }
 

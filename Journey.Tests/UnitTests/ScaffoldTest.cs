@@ -67,7 +67,7 @@ public class ScaffoldTest {
         Assert.Contains("""
             CREATE TABLE IF NOT EXISTS versions (
                 version INTEGER NOT NULL,
-                run_time TIMESTAMP  DEFAULT CURRENT_TIMESTAMP,
+                run_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 description TEXT NOT NULL,
                 run_by TEXT NOT NULL,
                 author TEXT NOT NULL

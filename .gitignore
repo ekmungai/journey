@@ -43,9 +43,12 @@ CodeCoverage/
 .vscode/*
 versions/*
 *.db
-.sql
+*.sql
 publish/*
+.idea/*
 scripts/*
+*.user
+*.xml
 
 # MSBuild Binary and Structured Log
 *.binlog

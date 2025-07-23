@@ -41,14 +41,24 @@ Install-Package Journey
 Then during the startup of the application, add the following code:
 ```bash
 # initialize the library
-var journey = new JourneyFacade(databaseType, connectionString, versionsDirectory);
+var journey = new JourneyFacade(databaseType, connectionString, versionsDirectory); 
 # initialize migrations (in quiet mode) in case its the first time
 await journey.init(true);
 # sync the database
 await journey.Update();
-
 ```
-This will sync the database to the highest version available in the `versionsDirectory`. If you'd like to migrate up/down to a specific version, you can provide the target version number to the update function:
+This will sync the database to the highest version available in the `versionsDirectory`. If you'd like to migrate up/down to a specific version, you can provide the target version number to the update function. 
+
+#### Logging
+By default, journey logs messages to the console using its internal logger. You can provide a custom logger by calling the `UseSerilogLogging` and  UseMicrosoftLogging`methods just before caling the update method.
+```bash
+# use a pre initialized serilog logger
+journey.UseSerilogLogging(logger);
+# use a pre initialized microsoft logger/loger factory
+journey.UseSerilogLogging(logger);
+# Or
+journey.UseSerilogLogging(loggerFactory);
+```
 
 ```bash
 await journey.Update(versionNumber);
