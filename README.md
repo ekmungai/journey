@@ -109,7 +109,7 @@ journey history -p "path\to\versions-dir" -d sqlite -c "Data Source=journal.db"
 ```
 
 ## Documentation
-You can read extensive documentation about Journey [here](https://journey.netlify-app.com).
+You can read extensive documentation about Journey [here](https://https://ekmungai.github.io/journey-docs/).
 
 ## Changelog
 Details of changes made are documented for each release.
