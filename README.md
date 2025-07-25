@@ -39,7 +39,7 @@ To make use of Journey in an .NET production application, install it as a Nuget 
 Install-Package Journey
 ```
 Then during the startup of the application, add the following code:
-```bash
+```c#
 # initialize the library
 var journey = new JourneyFacade(databaseType, connectionString, versionsDirectory); 
 # initialize migrations (in quiet mode) in case its the first time
@@ -51,7 +51,7 @@ This will sync the database to the highest version available in the `versionsDir
 
 #### Logging
 By default, journey logs messages to the console using its internal logger. You can provide a custom logger by calling the `UseSerilogLogging` and  UseMicrosoftLogging`methods just before caling the update method.
-```bash
+```c#
 # use a pre initialized serilog logger
 journey.UseSerilogLogging(logger);
 # use a pre initialized microsoft logger/loger factory
@@ -60,7 +60,7 @@ journey.UseSerilogLogging(logger);
 journey.UseSerilogLogging(loggerFactory);
 ```
 
-```bash
+```c#
 await journey.Update(versionNumber);
 ```
 
@@ -70,8 +70,8 @@ For local development, the Journey.Command tool is best suited. You can download
 #### Scaffolding
 The first step is to prepare the file version of the database, which you do by running the `scaffold` command.
 
-```
-journey scaffold -p "path\to\versions" -d sqlite -c "Data Source=journal.db"
+```bash
+journey scaffold -p "path\to\versions-dir" -d sqlite -c "Data Source=journal.db"
 ```
 This will create a template with the sections required by the journey tool pre filled, as well as instructions on how to put in custom queries for your migration.
 
@@ -79,33 +79,33 @@ NB: When running the tool against a database for the first time, you'll be promp
 
 #### Validation
 After you've entered your queries in the migration and rollback section, the next section is to verify that your new migration file is actually runnable by the tool. You do this by running the validate command.
-```
-journey validate -p "path\to\versions" -d sqlite -c "Data Source=journal.db"
+```bash
+journey validate -p "path\to\versions-dir" -d sqlite -c "Data Source=journal.db"
 ```
 Any errors found in the document will be reported together with the exact line number where the error occurs.
 
 #### Migrating 
 Now that we have valid migration file, the next step is to apply it. We accomlpish this with the migrate command.
-```
-journey migrate -p "path\to\versions" -d sqlite -c "Data Source=journal.db"
+```bash
+journey migrate -p "path\to\versions-dir" -d sqlite -c "Data Source=journal.db"
 ```
 
 #### Rollback 
 In case the changes applied are not what we expected, we can reset the database to what it was before the migration using the rollback command. 
-```
-journey rollback -p "path\to\versions" -d sqlite -c "Data Source=journal.db"
+```bash
+journey rollback -p "path\to\versions-dir" -d sqlite -c "Data Source=journal.db"
 ```
 
 #### Update 
 To sync the database to the highest version in the verisons directory, run the update command.
-```
-journey update -p "path\to\versions" -d sqlite -c "Data Source=journal.db"
+```bash
+journey update -p "path\to\versions-dir" -d sqlite -c "Data Source=journal.db"
 ```
 
 #### History 
 If you want to view the metatdata of the migrations applied to the database up to the current version, run the history command.
-```
-journey history -p "path\to\versions" -d sqlite -c "Data Source=journal.db"
+```bash
+journey history -p "path\to\versions-dir" -d sqlite -c "Data Source=journal.db"
 ```
 
 ## Documentation
