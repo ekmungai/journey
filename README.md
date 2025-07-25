@@ -49,19 +49,19 @@ await journey.Update();
 ```
 This will sync the database to the highest version available in the `versionsDirectory`. If you'd like to migrate up/down to a specific version, you can provide the target version number to the update function. 
 
+```c#
+await journey.Update(versionNumber);
+```
 #### Logging
 By default, journey logs messages to the console using its internal logger. You can provide a custom logger by calling the `UseSerilogLogging` and  UseMicrosoftLogging`methods just before caling the update method.
 ```c#
 # use a pre initialized serilog logger
 journey.UseSerilogLogging(logger);
-# use a pre initialized microsoft logger/logger factory
-journey.UseSerilogLogging(logger);
-# Or
-journey.UseSerilogLogging(loggerFactory);
-```
 
-```c#
-await journey.Update(versionNumber);
+# use a pre initialized microsoft logger/logger factory
+journey.UseMicrosoftLogging(logger);
+# Or
+journey.UseMicrosoftLogging(loggerFactory);
 ```
 
 ### Development
@@ -109,7 +109,7 @@ journey history -p "path\to\versions-dir" -d sqlite -c "Data Source=journal.db"
 ```
 
 ## Documentation
-You can read extensive documentation about Journey [here](https://https://ekmungai.github.io/journey-docs/).
+You can read extensive documentation about Journey [here](https://ekmungai.github.io/journey-docs/).
 
 ## Changelog
 Details of changes made are documented for each release.
