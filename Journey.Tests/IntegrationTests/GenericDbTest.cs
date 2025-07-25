@@ -1,4 +1,6 @@
 
+using Journey.Interfaces;
+
 namespace Journey.Tests.IntegrationTests;
 
 public abstract class GenericDbTests<T>(T _container) : IClassFixture<T> where T : DatabaseFixture, new() {

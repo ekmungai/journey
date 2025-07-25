@@ -1,4 +1,6 @@
 
+namespace Journey.Exceptions;
+
 /// <summary>
 /// The migration file for the provided version is invalid.
 /// </summary>

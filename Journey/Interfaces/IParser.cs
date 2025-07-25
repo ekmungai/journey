@@ -1,3 +1,5 @@
+namespace Journey.Interfaces;
+
 /// <summary>
 /// Converts the contents of a migration file into an executable series of Database queries,
 /// checking for the expected files structure along the way.

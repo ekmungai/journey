@@ -1,3 +1,5 @@
+namespace Journey.Exceptions;
+
 /// <summary>
 /// The attempted rollback is inconsistent.
 /// </summary>

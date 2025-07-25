@@ -1,15 +1,21 @@
 
+using Journey.Dialects;
+using Journey.Interfaces;
+using Journey.Models;
 using MySqlConnector;
+
+namespace Journey.Databases;
+
 /// <inheritdoc/>
 internal record Mysql : IDatabase {
     public const string Name = "mysql";
     private readonly SqlDialect _dbDialect = new MysqlDialect();
-    private string _connectionString = default!;
+    private string _connectionString = null!;
 
     /// <inheritdoc/>
     public Task<IDatabase> Connect(string connectionString) {
         _connectionString = connectionString;
-        return Task.FromResult((IDatabase)this);
+        return Task.FromResult<IDatabase>(this);
     }
 
     /// <inheritdoc/>
@@ -19,7 +25,7 @@ internal record Mysql : IDatabase {
 
     /// <inheritdoc/>
     public async Task Execute(string query) {
-        using var connection = new MySqlConnection(_connectionString);
+        await using var connection = new MySqlConnection(_connectionString);
         await connection.OpenAsync();
         var command = connection.CreateCommand();
         command.CommandText = query;
@@ -28,7 +34,7 @@ internal record Mysql : IDatabase {
 
     /// <inheritdoc/>
     public async Task<int> CurrentVersion() {
-        using var connection = new MySqlConnection(_connectionString);
+        await using var connection = new MySqlConnection(_connectionString);
         await connection.OpenAsync();
         var command = connection.CreateCommand();
         command.CommandText = _dbDialect.CurrentVersionQuery();
@@ -44,12 +50,12 @@ internal record Mysql : IDatabase {
     public async Task<List<Itinerary>> GetItinerary(int entries) {
         var history = new List<Itinerary>();
 
-        using var connection = new MySqlConnection(_connectionString);
+        await using var connection = new MySqlConnection(_connectionString);
         await connection.OpenAsync();
         var command = connection.CreateCommand();
         command.CommandText = _dbDialect.HistoryQuery().Replace("[entries]", entries.ToString());
 
-        using var reader = await command.ExecuteReaderAsync();
+        await using var reader = await command.ExecuteReaderAsync();
         while (reader.Read()) {
             history.Add(new Itinerary(
                 reader["version"].ToString()!,

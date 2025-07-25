@@ -1,3 +1,5 @@
+using Journey.Databases;
+using Journey.Interfaces;
 using Npgsql;
 using Testcontainers.PostgreSql;
 

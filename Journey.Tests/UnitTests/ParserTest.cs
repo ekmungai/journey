@@ -1,3 +1,6 @@
+using Journey.Dialects;
+using Journey.Exceptions;
+
 namespace Journey.Tests.UnitTests;
 
 public class ParserTest {

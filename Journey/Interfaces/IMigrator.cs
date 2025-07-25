@@ -1,3 +1,5 @@
+namespace Journey.Interfaces;
+
 /// <summary>
 /// Represents the orchestration of migration operations against the Database.
 /// </summary>

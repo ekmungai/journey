@@ -1,4 +1,5 @@
 using System.Data.SQLite;
+using Journey.Databases;
 
 namespace Journey.Tests.IntegrationTests;
 

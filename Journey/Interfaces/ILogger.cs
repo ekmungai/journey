@@ -1,3 +1,5 @@
+namespace Journey.Interfaces;
+
 /// <summary>
 /// Represents a means of reporting the state of the library.
 /// </summary>

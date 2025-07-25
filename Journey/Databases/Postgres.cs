@@ -1,15 +1,21 @@
+using Journey.Dialects;
+using Journey.Interfaces;
+using Journey.Models;
 using Npgsql;
+
+namespace Journey.Databases;
+
 /// <inheritdoc/>
 internal record Postgres : IDatabase {
     public const string Name = "postgres";
     private readonly SqlDialect _dialect = new PostgresDialect();
-    private string _connectionString = default!;
-    private string _schema = default!;
+    private string _connectionString = null!;
+    private string _schema = "";
 
     /// <inheritdoc/>
     public Task<IDatabase> Connect(string connectionString) {
-        _connectionString = connectionString;
-        return Task.FromResult((IDatabase)this);
+        _connectionString = $"{connectionString};CommandTimeout=300;Timeout=300;";
+        return Task.FromResult<IDatabase>(this);
     }
 
     /// <inheritdoc/>
@@ -20,9 +26,9 @@ internal record Postgres : IDatabase {
 
     /// <inheritdoc/>
     public async Task Execute(string query) {
-        using var dataSource = NpgsqlDataSource.Create(_connectionString);
+        await using var dataSource = NpgsqlDataSource.Create(_connectionString);
         var command = dataSource.CreateCommand();
-        command.CommandText = _schema != null
+        command.CommandText = _schema != ""
             ? query.Replace("versions", _schema + ".versions")
             : query;
         await command.ExecuteNonQueryAsync();
@@ -30,11 +36,11 @@ internal record Postgres : IDatabase {
 
     /// <inheritdoc/>
     public async Task<int> CurrentVersion() {
-        using var dataSource = NpgsqlDataSource.Create(_connectionString);
+        await using var dataSource = NpgsqlDataSource.Create(_connectionString);
         var command = dataSource.CreateCommand();
-        command.CommandText = _schema != null
-        ? _dialect.CurrentVersionQuery().Replace("versions", _schema + ".versions")
-        : _dialect.CurrentVersionQuery();
+        command.CommandText = _schema != ""
+            ? _dialect.CurrentVersionQuery().Replace("versions", _schema + ".versions")
+            : _dialect.CurrentVersionQuery();
         try {
             var result = await command.ExecuteScalarAsync();
             return int.Parse(result!.ToString() ?? "");
@@ -46,12 +52,12 @@ internal record Postgres : IDatabase {
     /// <inheritdoc/>
     public async Task<List<Itinerary>> GetItinerary(int entries) {
         var history = new List<Itinerary>();
-        using var dataSource = NpgsqlDataSource.Create(_connectionString);
+        await using var dataSource = NpgsqlDataSource.Create(_connectionString);
         var command = dataSource.CreateCommand();
         var query = _dialect.HistoryQuery().Replace("[entries]", entries.ToString());
-        command.CommandText = _schema != null
-        ? query.Replace("versions", _schema + ".versions")
-        : query;
+        command.CommandText = _schema != ""
+            ? query.Replace("versions", _schema + ".versions")
+            : query;
         var reader = await command.ExecuteReaderAsync();
         while (reader.Read()) {
             history.Add(new Itinerary(

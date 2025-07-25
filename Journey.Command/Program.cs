@@ -1,3 +1,4 @@
+namespace Journey.Command;
 
 internal class Program {
     private static async Task<int> Main(string[] args) {

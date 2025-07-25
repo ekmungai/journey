@@ -1,4 +1,7 @@
-﻿using Moq.AutoMock;
+﻿using Journey.Dialects;
+using Journey.Interfaces;
+using Journey.Models;
+using Moq.AutoMock;
 
 namespace Journey.Tests.UnitTests;
 

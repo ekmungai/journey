@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
+namespace Journey.Exceptions;
+
 /// <summary>
 /// Migration file does not conform to the expected structure
 /// </summary>

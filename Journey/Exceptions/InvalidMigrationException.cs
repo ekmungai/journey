@@ -1,4 +1,6 @@
 
+namespace Journey.Exceptions;
+
 /// <summary>
 /// The attempted migration is inconsistent.
 /// </summary>

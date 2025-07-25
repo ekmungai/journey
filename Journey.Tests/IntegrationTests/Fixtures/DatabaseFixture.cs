@@ -1,3 +1,5 @@
+using Journey.Interfaces;
+
 public abstract class DatabaseFixture : IAsyncLifetime {
     public abstract IDatabase GetDatabase();
     public virtual string? GetSchema() => "public";

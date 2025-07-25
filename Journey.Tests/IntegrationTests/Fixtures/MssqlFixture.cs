@@ -1,4 +1,6 @@
 using System.Data.SqlClient;
+using Journey.Databases;
+using Journey.Interfaces;
 using Testcontainers.MsSql;
 
 public class MssqlFixture : DatabaseFixture, IAsyncLifetime {

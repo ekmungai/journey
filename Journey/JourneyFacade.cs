@@ -1,6 +1,13 @@
 using System.IO.Abstractions;
+using Journey.Databases;
+using Journey.Interfaces;
+using Journey.Loggers;
 using Microsoft.Extensions.Logging;
-/// <inheritdoc/>
+using ILogger = Journey.Interfaces.ILogger;
+
+namespace Journey;
+
+/// <inheritdoc cref="IJourneyFacade" />
 public class JourneyFacade(
     string databaseType,
     string connectionString,
@@ -8,14 +15,14 @@ public class JourneyFacade(
     string? schema,
     bool? verbose
 ) : IJourneyFacade, IDisposable {
-    internal Migrator _migrator = default!;
-    internal IDatabase _database = default!;
+    private Migrator _migrator = null!;
+    private IDatabase _database = null!;
 
     private void SetLogger(ILogger logger) {
         _migrator.SetLogger(logger);
     }
 
-    public async Task Init(bool quiet, IFileSystem? _fileSystem = null) {
+    public async Task Init(bool quiet, IFileSystem? fileSystem = null) {
         _database = databaseType switch {
             Sqlite.Name => await new Sqlite().Connect(connectionString),
             Postgres.Name => await new Postgres().Connect(connectionString, schema!),
@@ -27,7 +34,7 @@ public class JourneyFacade(
             CassandraDb.Name => await new CassandraDb().Connect(connectionString),
             _ => await new Sqlite().Connect(connectionString),
         };
-        _migrator = new Migrator(new FileManager(versionsDir, _fileSystem ?? new FileSystem()), _database, verbose);
+        _migrator = new Migrator(new FileManager(versionsDir, fileSystem ?? new FileSystem()), _database, verbose);
         await _migrator.Init(quiet);
     }
     /// <inheritdoc/>
@@ -46,8 +53,8 @@ public class JourneyFacade(
     public Task Init(bool quiet) => Init(quiet, new FileSystem());
     /// <inheritdoc/>
     public void Dispose() => _database.Dispose();
-    /// <inheritdoc/>
-    public IDatabase GetDatabase() => _database;
+    /// Get the database associated with the facade
+    internal IDatabase GetDatabase() => _database;
 
     public void UseSerilogLogging(Serilog.ILogger logger) {
         SetLogger(new SerilogLogger(logger));

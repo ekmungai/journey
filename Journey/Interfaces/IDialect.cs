@@ -1,3 +1,5 @@
+namespace Journey.Interfaces;
+
 /// <summary>
 /// The form of SQL language structures Database specific to a Database
 /// including some general operations

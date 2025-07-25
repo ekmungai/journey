@@ -1,19 +1,22 @@
-
 using System.Text;
+using Journey.Interfaces;
+
+namespace Journey.Models;
+
 /// <summary>
 /// Represents the structure of an empty migration file, ready to be filled with 
 /// queries that make changes to the database.
 /// </summary>
 internal record Scaffold {
     private const string _header = """
-        ------------------------------------------------------------------
-        -- | Migration file formatting rules.                               |
-        -- | 1. There must be one and only one migration and one and only   |
-        -- |    one rollback section.                                       |
-        -- | 2. Only change the section between transaction blocks.         | 
-        -- | 3. Each migration and rollback must have only one transaction. |                                       |
-        -- ******************************************************************
-        """;
+                                   ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Only change the section between transaction blocks.         | 
+                                   -- | 3. Each migration and rollback must have only one transaction. |                                       |
+                                   -- ******************************************************************
+                                   """;
     private const string _startMigration = "start migration";
     private const string _scaffoldMigration = "SCAFFOLDING: Enter your migration queries here ..";
     private const string _endMigration = "end migration";
@@ -22,9 +25,9 @@ internal record Scaffold {
     private const string _endRollback = "end rollback";
     private readonly IDialect _dialect;
 
-    private List<string> _scaffolding { get; set; }
+    private List<string> _scaffolding { get; }
 
-    public List<string> Scaffolding { get { return _scaffolding; } }
+    public List<string> Scaffolding => _scaffolding;
 
 
     /// <summary>

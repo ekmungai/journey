@@ -1,4 +1,8 @@
 
+using Journey.Dialects;
+using Journey.Exceptions;
+using Journey.Interfaces;
+using Journey.Models;
 using Moq;
 using Moq.AutoMock;
 

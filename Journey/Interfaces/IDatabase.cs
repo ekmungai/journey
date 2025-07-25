@@ -1,4 +1,8 @@
 
+using Journey.Models;
+
+namespace Journey.Interfaces;
+
 /// <summary>
 /// A representation of a Database.
 /// </summary>

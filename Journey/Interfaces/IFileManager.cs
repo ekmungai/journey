@@ -1,3 +1,5 @@
+namespace Journey.Interfaces;
+
 /// <summary>
 /// Represents the file system within migration scripts are located.
 /// </summary>

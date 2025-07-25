@@ -1,4 +1,6 @@
 using Cassandra;
+using Journey.Databases;
+using Journey.Interfaces;
 using Testcontainers.Cassandra;
 
 public class CassandraFixture : DatabaseFixture, IAsyncLifetime {

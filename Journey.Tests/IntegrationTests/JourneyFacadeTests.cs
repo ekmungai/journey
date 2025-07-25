@@ -2,6 +2,7 @@
 using System.Collections;
 using System.IO.Abstractions.TestingHelpers;
 using System.Reflection;
+using Journey.Exceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.AutoMock;
@@ -178,6 +179,8 @@ public class JourneyFacadeTest : IDisposable {
         
         _mocker.GetMock<Serilog.ILogger>()
             .Setup(m => m.Information(It.Is<string>(
+                log => log.Contains("{message}")
+            ),It.Is<string>(
                 log => log.Contains("File for version 0 is valid with the queries:")
             )));
         
@@ -231,13 +234,15 @@ public class JourneyFacadeTest : IDisposable {
         
         var logger = _mocker.GetMock<Serilog.ILogger>().Object;
         _journeyFacade.UseSerilogLogging(logger);
-        
         _mocker.GetMock<Serilog.ILogger>()
-            .Setup(m => m.Error(It.IsAny<InvalidFormatException>(), It.Is<string>(
-                log => log.Contains("File for version 0 is invalid with error:")
-            )));
+            .Setup(m => m.Error(It.IsAny<InvalidFormatException>(),
+                It.Is<string>(
+                log => log.Contains("File for version 0 is invalid with error: 'The migration file is malformed at: BEGIN;'")
+                )));
         
         Assert.False(await _journeyFacade.Validate(0));
+        var invocation = _mocker.GetMock<Serilog.ILogger>()
+            .Invocations[0];
     }
 
     [Fact]
@@ -267,13 +272,13 @@ public class JourneyFacadeTest : IDisposable {
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         await _journeyFacade.Init(true, _fileSystem);
         
-        var logger = _mocker.GetMock<Microsoft.Extensions.Logging.ILogger>().Object;
+        var logger = _mocker.GetMock<ILogger>().Object;
         _journeyFacade.UseMicrosoftLogging(logger);
         
         Assert.True(await _journeyFacade.Validate(0));
         
         // Cannot verify extension methods, so we check the contents of the invocations list
-        var invocation = _mocker.GetMock<Microsoft.Extensions.Logging.ILogger>()
+        var invocation = _mocker.GetMock<ILogger>()
             .Invocations[0];
         Assert.Equal(LogLevel.Information, invocation.Arguments[0]);
     }
@@ -323,13 +328,13 @@ public class JourneyFacadeTest : IDisposable {
 
         await _journeyFacade.Init(true, _fileSystem);
         
-        var logger = _mocker.GetMock<Microsoft.Extensions.Logging.ILogger>().Object;
+        var logger = _mocker.GetMock<ILogger>().Object;
         _journeyFacade.UseMicrosoftLogging(logger);
         
         Assert.False(await _journeyFacade.Validate(0));
         
         // Cannot verify extension methods, so we check the contents of the invocations list
-        var invocation = _mocker.GetMock<Microsoft.Extensions.Logging.ILogger>()
+        var invocation = _mocker.GetMock<ILogger>()
             .Invocations[0];
         Assert.Equal(LogLevel.Error, invocation.Arguments[0]);
     }
@@ -341,13 +346,13 @@ public class JourneyFacadeTest : IDisposable {
         _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
         await _journeyFacade.Init(true, _fileSystem);
         
-        var logger = _mocker.GetMock<Microsoft.Extensions.Logging.ILogger>().Object;
+        var logger = _mocker.GetMock<ILogger>().Object;
         _journeyFacade.UseMicrosoftLogging(logger);
         
         await _journeyFacade.Migrate(null, false);
         
         // Cannot verify extension methods, so we check the contents of the invocations list
-        var invocation = _mocker.GetMock<Microsoft.Extensions.Logging.ILogger>()
+        var invocation = _mocker.GetMock<ILogger>()
             .Invocations[1];
         Assert.Equal(LogLevel.Debug, invocation.Arguments[0]);
     }

@@ -1,10 +1,15 @@
 using System.Data.SQLite;
-using System.Reflection.Metadata;
+using Journey.Dialects;
+using Journey.Interfaces;
+using Journey.Models;
+
+namespace Journey.Databases;
+
 /// <inheritdoc/>
 internal record Sqlite : IDatabase {
     public const string Name = "sqlite";
     private readonly SqlDialect _dialect = new SQliteDialect();
-    private SQLiteConnection _connection = default!;
+    private SQLiteConnection _connection = null!;
 
     /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString) {
@@ -43,7 +48,7 @@ internal record Sqlite : IDatabase {
         var command = _connection.CreateCommand();
         command.CommandText = _dialect.HistoryQuery().Replace("[entries]", entries.ToString());
         var reader = await command.ExecuteReaderAsync();
-        while (reader.Read()) {
+        while (await reader.ReadAsync()) {
             history.Add(new Itinerary(
                 reader["version"].ToString()!,
                 (string)reader["description"],

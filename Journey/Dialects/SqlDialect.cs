@@ -1,5 +1,9 @@
+using Journey.Interfaces;
+
+namespace Journey.Dialects;
+
 /// <inheritdoc/>
-internal abstract record SqlDialect() : IDialect {
+internal abstract record SqlDialect : IDialect {
     /// <inheritdoc/>
     public abstract string MigrateVersionsTable();
     /// <inheritdoc/>
@@ -12,9 +16,9 @@ internal abstract record SqlDialect() : IDialect {
     public virtual string DeleteVersion() => "DELETE FROM versions WHERE version = [versionNumber];";
     /// <inheritdoc/>
     public virtual string RollbackVersionsTable() => "DROP TABLE versions;";
-    /// <inheritdoc/>
+    /// Query for getting the current version of the database
     public virtual string CurrentVersionQuery() => "SELECT COUNT(*) as version FROM versions;";
-    /// <inheritdoc/>
+    /// Query for getting the history entries in the database
     public virtual string HistoryQuery() => "SELECT * FROM versions ORDER BY version LIMIT [entries];";
     /// <inheritdoc/>
     public string Comment() => "--";

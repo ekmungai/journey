@@ -1,3 +1,5 @@
+namespace Journey.Models;
+
 /// <summary>
 /// Represents an entry in the versions table, i.e. a stop on the migration journey.
 /// </summary>

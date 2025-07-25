@@ -1,13 +1,18 @@
 using System.Text;
+using Journey.Exceptions;
+using Journey.Interfaces;
+using Journey.Models;
 
 #pragma warning disable CS8603 // Possible null reference return.
+namespace Journey;
+
 /// <inheritdoc />
 internal class Parser : IParser {
-    private int _openSection = 0;
-    private int _openTransaction = 0;
-    private StringBuilder _block = new();
+    private int _openSection;
+    private int _openTransaction;
+    private readonly StringBuilder _block = new();
     private readonly Queue<string> _fileContents;
-    private Dictionary<string, List<string>> _result = new() {
+    private readonly Dictionary<string, List<string>> _result = new() {
         { Migration, [] },
         { Rollback, [] }
     };
@@ -17,7 +22,7 @@ internal class Parser : IParser {
     private readonly string[] _sectionEnd;
     public const string Migration = "Migration";
     public const string Rollback = "Rollback";
-    /// <inheritdoc />
+    
     public Parser(string[] content, IDialect dialect) {
         _dialect = dialect;
         _scaffold = new Scaffold(dialect, null);
@@ -35,7 +40,7 @@ internal class Parser : IParser {
     /// <summary>
     /// Represents the contents of the parsed file as a string.
     /// </summary>
-    /// <returns>A string representation of the contents of the parsed file.</returns>
+    /// <returns>A string representation of the contents in the parsed file.</returns>
     public override string ToString() {
         var sb = new StringBuilder();
 
@@ -58,8 +63,8 @@ internal class Parser : IParser {
 
         var line = _fileContents.Peek();
         var section = line == _scaffold.Scaffolding[1]
-        ? _result[Migration]
-        : _result[Rollback];
+            ? _result[Migration]
+            : _result[Rollback];
         return ParseSection(_fileContents, section);
     }
 

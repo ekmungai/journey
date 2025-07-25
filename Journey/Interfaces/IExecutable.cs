@@ -1,3 +1,5 @@
+namespace Journey.Interfaces;
+
 /// <summary>
 /// Represents an object which when executed effects a change on the Database.
 /// </summary>

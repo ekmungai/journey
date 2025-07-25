@@ -1,3 +1,5 @@
+namespace Journey.Interfaces;
+
 /// <inheritdoc />
 public interface IJourneyFacade : IMigrator {
     /// <summary>
@@ -13,6 +15,6 @@ public interface IJourneyFacade : IMigrator {
     /// <summary>
     /// Sets Microsoft as the logger for the migrator, using a logger factory.
     /// </summary>
-    /// <param name="logger">The Microsoft logger factory with which to create a logger instance to use.</param>
+    /// <param name="loggerFactory">The Microsoft logger factory with which to create a logger instance to use.</param>
     public void UseMicrosoftLogging(Microsoft.Extensions.Logging.ILoggerFactory loggerFactory);
 }

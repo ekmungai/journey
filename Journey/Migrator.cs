@@ -1,11 +1,18 @@
 using System.Text;
+using Journey.Exceptions;
+using Journey.Interfaces;
+using Journey.Loggers;
+using Journey.Models;
+
+namespace Journey;
+
 /// <inheritdoc/>
 internal class Migrator(IFileManager fileManager, IDatabase database, bool? verbose) : IMigrator {
-    private const string yes = "y|yes|Y|Yes";
+    private const string Yes = "y|yes|Y|Yes";
     private List<int> _map = [];
     private int _currentVersion;
-    private string _newLine = Environment.NewLine;
-    private bool _verbose = verbose ?? false;
+    private readonly string _newLine = Environment.NewLine;
+    private readonly bool _verbose = verbose ?? false;
     private ILogger _logger = new ConsoleLogger();
 
     internal void SetLogger(ILogger logger) {
@@ -22,7 +29,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, bool? verb
             } else {
                 _logger.Information($"{_newLine}Migrations have not been initialized. Would you like to do so now? [Y/n]");
                 var answer = Console.ReadLine();
-                if (answer != null && yes.Contains(answer)) {
+                if (answer != null && Yes.Contains(answer)) {
                     await MigrateInit();
                 } else {
                     Environment.Exit(-1);
@@ -81,8 +88,8 @@ internal class Migrator(IFileManager fileManager, IDatabase database, bool? verb
     public async Task<string> History(int entries) {
         var diary = new StringBuilder();
         diary.AppendLine($"{_newLine}Version | RunTime \t\t\t| Description \t\t\t| RunBy \t| Author");
-        foreach (var Itinerary in await database.GetItinerary(entries)) {
-            diary.AppendLine(Itinerary.ToString());
+        foreach (var itinerary in await database.GetItinerary(entries)) {
+            diary.AppendLine(itinerary.ToString());
         }
         var report = diary.ToString();
         _logger.Information($"{report}");
@@ -180,9 +187,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, bool? verb
     }
 
     private (int currentVersion, int nextVersion) GetVersions(int? target, int direction) {
-        var newVersion = target == null
-            ? _currentVersion + direction
-            : target.Value;
+        var newVersion = target ?? _currentVersion + direction;
         if (newVersion < -1) {
             throw new InvalidRollbackException("Cannot rollback beyond version -1");
         }

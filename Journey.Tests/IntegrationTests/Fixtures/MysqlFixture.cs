@@ -1,3 +1,5 @@
+using Journey.Databases;
+using Journey.Interfaces;
 using Testcontainers.MySql;
 
 public class MysqlFixture : DatabaseFixture, IAsyncLifetime {

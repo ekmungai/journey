@@ -1,11 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
+using Journey.Interfaces;
+
+namespace Journey.Loggers;
+
 /// <inheritdoc/>
-[ExcludeFromCodeCoverage]
-public class ConsoleLogger : ILogger {
+public sealed class ConsoleLogger : ILogger {
     /// <inheritdoc/>
-    public virtual void Debug(string message) => Console.WriteLine(message);
+    public void Debug(string message) => Console.WriteLine(message);
     /// <inheritdoc/>
-    public virtual void Error(Exception ex, string message) => Console.WriteLine($"Message: {message}, Exception: {ex}");
+    public void Error(Exception ex, string message) => Console.WriteLine($"Message: {message}, Exception: {ex}");
     /// <inheritdoc/>
-    public virtual void Information(string message) => Console.WriteLine(message);
+    public void Information(string message) => Console.WriteLine(message);
 }
