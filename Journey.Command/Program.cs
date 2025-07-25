@@ -1,3 +1,4 @@
+using Journey;
 namespace Journey.Command;
 
 internal class Program {
