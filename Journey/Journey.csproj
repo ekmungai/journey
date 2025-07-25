@@ -11,11 +11,7 @@
         <Company>Microbooks.io</Company>
         <PackageTags>mysql cli cassandra dotnet sqlite scripts postgresql journey migration mariadb
             mssql cockroachdb csharp-library stepwise </PackageTags>
-        <Description>
-            Journey is a script based database migration tool that treats a migration a journey, a
-            collection of steps taken from the beginning (origin) state of the database to the final
-            (destination) state.
-        </Description>
+        <Description>Journey is a script based database migration tool that treats a migration a journey, a            collection of steps taken from the beginning (origin) state of the database to the final            (destination) state.</Description>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageProjectUrl>https://ekmungai.github.io/journey-docs/</PackageProjectUrl>

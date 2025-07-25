@@ -54,7 +54,7 @@ By default, journey logs messages to the console using its internal logger. You 
 ```c#
 # use a pre initialized serilog logger
 journey.UseSerilogLogging(logger);
-# use a pre initialized microsoft logger/loger factory
+# use a pre initialized microsoft logger/logger factory
 journey.UseSerilogLogging(logger);
 # Or
 journey.UseSerilogLogging(loggerFactory);
@@ -109,7 +109,7 @@ journey history -p "path\to\versions-dir" -d sqlite -c "Data Source=journal.db"
 ```
 
 ## Documentation
-You can read extensive documentation about Journey [here](journey.netlify-app.com).
+You can read extensive documentation about Journey [here](https://journey.netlify-app.com).
 
 ## Changelog
 Details of changes made are documented for each release.
