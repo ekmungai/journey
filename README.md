@@ -1,7 +1,7 @@
 # Welcome to Journey 
 [![.NET](https://github.com/ekmungai/journey/actions/workflows/dotnet.yml/badge.svg)](https://github.com/ekmungai/journey/actions/workflows/dotnet.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-<img align="right" width="150px" height="150px" src="./logo.png">
+<img align="right" width="130px" height="130px" src="./logo.png">
 Journey is a script based database migration tool that treats a migration a journey, a collection of steps taken from the beginning (origin) state of the database to the final (destination) state.
 
 ## Why Journey?
