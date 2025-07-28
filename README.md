@@ -1,7 +1,7 @@
 # Welcome to Journey 
 [![.NET](https://github.com/ekmungai/journey/actions/workflows/dotnet.yml/badge.svg)](https://github.com/ekmungai/journey/actions/workflows/dotnet.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-
+<img align="right" width="150px" height="150px" src="./logo.png">
 Journey is a script based database migration tool that treats a migration a journey, a collection of steps taken from the beginning (origin) state of the database to the final (destination) state.
 
 ## Why Journey?
@@ -53,7 +53,7 @@ This will sync the database to the highest version available in the `versionsDir
 await journey.Update(versionNumber);
 ```
 #### Logging
-By default, journey logs messages to the console using its internal logger. You can provide a custom logger by calling the `UseSerilogLogging` and  UseMicrosoftLogging`methods just before caling the update method.
+By default, journey logs messages to the console using its internal logger. You can provide a custom logger by calling the `UseSerilogLogging` and `UseMicrosoftLogging` methods just before calling the update method.
 ```c#
 # use a pre initialized serilog logger
 journey.UseSerilogLogging(logger);
@@ -65,7 +65,7 @@ journey.UseMicrosoftLogging(loggerFactory);
 ```
 
 ### Development
-For local development, the Journey.Command tool is best suited. You can download it from the [releases](https://github.com/ekmungai/journey/releases) page.
+For local development, the `Journey.Command` CLI tool is best suited. You can download it from the [releases](https://github.com/ekmungai/journey/releases) page.
 
 #### Scaffolding
 The first step is to prepare the file version of the database, which you do by running the `scaffold` command.
