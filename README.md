@@ -37,7 +37,7 @@ Each version file is validated before execution which when combined with a dry r
 ### Production
 To make use of Journey in an .NET production application, install it as a Nuget package:
 ```bash
-Install-Package Journey
+Install-Package Ekmungai.Journey
 ```
 Then during the startup of the application, add the following code:
 ```c#
