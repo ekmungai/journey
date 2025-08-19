@@ -3,25 +3,25 @@ using Journey.Interfaces;
 
 namespace Journey.Tests.IntegrationTests;
 
-public abstract class GenericDbTests<T>(T _container) : IClassFixture<T> where T : DatabaseFixture, new() {
-    private readonly IDatabase _database = _container.GetDatabase();
+public abstract class GenericDbTests<T>(T container) : IClassFixture<T> where T : DatabaseFixture, new() {
+    private readonly IDatabase _database = container.GetDatabase();
 
     [Fact]
     public async Task TestGetCurrentVersionUninitialized() {
-        await _database.Connect(_container.GetConnectionString(), _container.GetSchema()!);
+        await _database.Connect(container.GetConnectionString(), container.GetSchema()!);
         await ClearVersionsTable();
         Assert.Equal(-1, await _database.CurrentVersion());
     }
 
     [Fact]
     public async Task TestGetCurrentVersionInitialized() {
-        await _database.Connect(_container.GetConnectionString(), _container.GetSchema()!);
+        await _database.Connect(container.GetConnectionString(), container.GetSchema()!);
         await ClearVersionsTable();
         await SetupVersionsTable();
 
         Assert.Equal(0, await _database.CurrentVersion());
 
-        List<string> queries = _container.GetVersionEntries();
+        List<string> queries = container.GetVersionEntries();
 
         await _database.Execute(queries[0]);
 
@@ -34,28 +34,28 @@ public abstract class GenericDbTests<T>(T _container) : IClassFixture<T> where T
 
     [Fact]
     public async Task TestExecute() {
-        await _database.Connect(_container.GetConnectionString(), _container.GetSchema()!);
-        await _database.Execute(_container.GetValidQuery());
+        await _database.Connect(container.GetConnectionString(), container.GetSchema()!);
+        await _database.Execute(container.GetValidQuery());
     }
 
     [Fact]
     public async Task TestExecuteThrows() {
-        await _database.Connect(_container.GetConnectionString(), _container.GetSchema()!);
+        await _database.Connect(container.GetConnectionString(), container.GetSchema()!);
         try {
-            await _database.Execute(_container.GetInValidQuery());
+            await _database.Execute(container.GetInValidQuery());
         } catch (Exception e) {
-            Assert.Equal(e.GetType(), _container.GetDatabaseException());
+            Assert.Equal(e.GetType(), container.GetDatabaseException());
         }
     }
 
     [Fact]
     public async Task TestGetItinerary() {
-        await _database.Connect(_container.GetConnectionString(), _container.GetSchema()!);
+        await _database.Connect(container.GetConnectionString(), container.GetSchema()!);
         await SetupVersionsTable();
 
-        List<string> queries = _container.GetVersionEntries();
+        var queries = container.GetVersionEntries();
 
-        queries.ForEach(async q => await _database.Execute(q));
+        queries.ForEach(async void (q) => await _database.Execute(q));
         //_database.Dispose();
 
         var time = 5;
@@ -67,22 +67,18 @@ public abstract class GenericDbTests<T>(T _container) : IClassFixture<T> where T
         }
 
         Assert.Contains(history,
-            h => h.Version == "1"
-            && h.Description == "Testing version insert number one"
-            && h.RunBy == "me"
-            && h.Author == "you");
+            h => h is { Version: "1", Description: "Testing version insert number one", RunBy: "me", Author: "you" });
 
         Assert.Contains(history,
-            h => h.Version == "2"
-            && h.Description == "Testing version insert number two"
-            && h.RunBy == "they"
-            && h.Author == "them");
+            h => h is { Version: "2", Description: "Testing version insert number two", RunBy: "they", Author: "them" });
     }
 
     private async Task SetupVersionsTable() => await _database.Execute(_database.GetDialect().MigrateVersionsTable());
     private async Task ClearVersionsTable() {
         try {
             await _database.Execute(_database.GetDialect().RollbackVersionsTable());
-        } catch { }
+        } catch {
+            // ignored
+        }
     }
 }

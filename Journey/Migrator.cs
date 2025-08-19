@@ -45,7 +45,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, bool? verb
 
         var version = _currentVersion + 1;
         var scaffold = new Scaffold(database.GetDialect(), version);
-        _logger.Information($"{_newLine}Scafffolding version: {version}");
+        _logger.Information($"{_newLine}Scaffolding version: {version}");
         var content = scaffold.ToString();
         await fileManager.WriteFile(version, content);
         var log = $"Version: {version} scaffolded";
@@ -104,7 +104,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, bool? verb
         var route = GetRoute(currentVersion, newVersion, -1);
         if (route.Count > 0) {
             await Travel(route, -1);
-            _logger.Information($"{_newLine}The database was succesfully rolled back to version: {newVersion}{_newLine}");
+            _logger.Information($"{_newLine}The database was successfully rolled back to version: {newVersion}{_newLine}");
         } else {
             _logger.Information($"{_newLine}The database is up to date at Version: {currentVersion}{_newLine}");
         }
@@ -116,9 +116,9 @@ internal class Migrator(IFileManager fileManager, IDatabase database, bool? verb
         int? downgrade = null;
         var latest = _map[^1];
 
-        if (target.HasValue && target.Value > _currentVersion) {
+        if (target > _currentVersion) {
             upgrade = target;
-        } else if (target.HasValue && target.Value < _currentVersion) {
+        } else if (target < _currentVersion) {
             downgrade = target;
         } else if (_currentVersion < latest) {
             upgrade = latest;

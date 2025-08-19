@@ -5,4 +5,4 @@ namespace Journey.Exceptions;
 /// The attempted migration is inconsistent.
 /// </summary>
 /// <param name="message">A message explaining the cause of the inconsistency.</param>
-internal class InvalidMigrationException(string message) : InvalidOperationException(message) { }
+internal class InvalidMigrationException(string message) : InvalidOperationException(message);

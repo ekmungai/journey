@@ -3,17 +3,16 @@ using Journey.Interfaces;
 namespace Journey.Models;
 
 /// Represents an action applied to the database 
-public abstract record DatabaseAction(IDatabase database, Action<string> logger) : IExecutable {
-    protected List<string> _queries = null!;
-    protected readonly IDatabase _database = database;
+public abstract record DatabaseAction(IDatabase Database, Action<string> Logger) : IExecutable {
+    protected List<string> Queries = null!;
 
     /// Executes the queries of the action on the database to apply it
     public async Task Execute(bool verbose) {
-        foreach (var query in _queries) {
+        foreach (var query in Queries) {
             if (verbose) {
-                logger($"> {query}");
+                Logger($"> {query}");
             }
-            await database.Execute(query.Trim());
+            await Database.Execute(query.Trim());
         }
     }
 }

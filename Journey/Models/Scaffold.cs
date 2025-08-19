@@ -8,7 +8,7 @@ namespace Journey.Models;
 /// queries that make changes to the database.
 /// </summary>
 internal record Scaffold {
-    private const string _header = """
+    private const string Header = """
                                    ------------------------------------------------------------------
                                    -- | Migration file formatting rules.                               |
                                    -- | 1. There must be one and only one migration and one and only   |
@@ -17,17 +17,17 @@ internal record Scaffold {
                                    -- | 3. Each migration and rollback must have only one transaction. |                                       |
                                    -- ******************************************************************
                                    """;
-    private const string _startMigration = "start migration";
-    private const string _scaffoldMigration = "SCAFFOLDING: Enter your migration queries here ..";
-    private const string _endMigration = "end migration";
-    private const string _startRollback = "start rollback";
-    private const string _scaffoldRollback = "SCAFFOLDING: Enter your rollback queries here ..";
-    private const string _endRollback = "end rollback";
+    private const string StartMigration = "start migration";
+    private const string ScaffoldMigration = "SCAFFOLDING: Enter your migration queries here ..";
+    private const string EndMigration = "end migration";
+    private const string StartRollback = "start rollback";
+    private const string ScaffoldRollback = "SCAFFOLDING: Enter your rollback queries here ..";
+    private const string EndRollback = "end rollback";
     private readonly IDialect _dialect;
 
-    private List<string> _scaffolding { get; }
+    private List<string> Scaffolding { get; }
 
-    public List<string> Scaffolding => _scaffolding;
+    public List<string> GetScaffolding() => Scaffolding;
 
 
     /// <summary>
@@ -36,23 +36,23 @@ internal record Scaffold {
     /// <param name="dialect">The dialect for which the migration should be scaffolded.</param>
     /// <param name="version">The version of the migration should be scaffolded.</param>
     public Scaffold(IDialect dialect, int? version) {
-        _scaffolding = [.. new List<string>() {
-            _header,
-            _startMigration,
-            _scaffoldMigration,
-            _endMigration,
-            _startRollback,
-            _scaffoldRollback,
-            _endRollback
+        Scaffolding = [.. new List<string> {
+            Header,
+            StartMigration,
+            ScaffoldMigration,
+            EndMigration,
+            StartRollback,
+            ScaffoldRollback,
+            EndRollback
         }.Select(s => dialect.Comment() + " " + s)];
 
-        var end = dialect.DeleteVersion();
-        _scaffolding.Insert(2, dialect.StartTransaction());
-        _scaffolding.Insert(4, dialect.InsertVersion().Replace("[versionNumber]", version.ToString()));
-        _scaffolding.Insert(5, dialect.EndTransaction());
-        _scaffolding.Insert(8, dialect.StartTransaction());
-        _scaffolding.Insert(10, dialect.DeleteVersion().Replace("[versionNumber]", version.ToString()));
-        _scaffolding.Insert(11, dialect.EndTransaction());
+        dialect.DeleteVersion();
+        Scaffolding.Insert(2, dialect.StartTransaction());
+        Scaffolding.Insert(4, dialect.InsertVersion().Replace("[versionNumber]", version.ToString()));
+        Scaffolding.Insert(5, dialect.EndTransaction());
+        Scaffolding.Insert(8, dialect.StartTransaction());
+        Scaffolding.Insert(10, dialect.DeleteVersion().Replace("[versionNumber]", version.ToString()));
+        Scaffolding.Insert(11, dialect.EndTransaction());
         _dialect = dialect;
     }
 
@@ -60,10 +60,10 @@ internal record Scaffold {
     /// Scaffold for the first migration file, which prepares the database for use with the journey tool.
     /// </summary>
     public void ScaffoldInit() {
-        _scaffolding[3] = _dialect.MigrateVersionsTable();
-        _scaffolding.RemoveAt(4);
-        _scaffolding[8] = _dialect.RollbackVersionsTable();
-        _scaffolding.RemoveAt(9);
+        Scaffolding[3] = _dialect.MigrateVersionsTable();
+        Scaffolding.RemoveAt(4);
+        Scaffolding[8] = _dialect.RollbackVersionsTable();
+        Scaffolding.RemoveAt(9);
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ internal record Scaffold {
     public override string ToString() {
         var stringBuilder = new StringBuilder();
 
-        foreach (var line in _scaffolding) {
+        foreach (var line in Scaffolding) {
             stringBuilder.AppendLine();
             stringBuilder.AppendLine(line);
         }

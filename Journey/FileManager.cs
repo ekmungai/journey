@@ -6,7 +6,7 @@ namespace Journey;
 /// <inheritdoc/>
 internal class FileManager(string versionsDir, IFileSystem fileSystem) : IFileManager {
     public bool FileExists(int versionNumber)
-        => fileSystem.File.Exists(Path.Combine(versionsDir, versionNumber.ToString() + ".sql"));
+        => fileSystem.File.Exists(Path.Combine(versionsDir, versionNumber + ".sql"));
     /// <inheritdoc/>
     public List<int> GetMap() {
         var versionNumbers = new List<int>();

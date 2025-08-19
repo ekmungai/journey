@@ -30,8 +30,8 @@ internal class Parser : IParser {
         _fileContents = new Queue<string>(content
             .Skip(firstSectionIndex) // skip header
             .Where(q => !string.IsNullOrWhiteSpace(q))); // remove blank spaces
-        _sectionStart = [_scaffold.Scaffolding[1], _scaffold.Scaffolding[7]];
-        _sectionEnd = [_scaffold.Scaffolding[6], _scaffold.Scaffolding[12]];
+        _sectionStart = [_scaffold.GetScaffolding()[1], _scaffold.GetScaffolding()[7]];
+        _sectionEnd = [_scaffold.GetScaffolding()[6], _scaffold.GetScaffolding()[12]];
     }
 
     /// <inheritdoc />
@@ -62,56 +62,51 @@ internal class Parser : IParser {
         }
 
         var line = _fileContents.Peek();
-        var section = line == _scaffold.Scaffolding[1]
+        var section = line == _scaffold.GetScaffolding()[1]
             ? _result[Migration]
             : _result[Rollback];
         return ParseSection(_fileContents, section);
     }
 
     private Queue<string> ParseSection(Queue<string> sectionContents, List<string> section) {
-        if (sectionContents.Count > 0) {
-            var line = sectionContents.Peek();
+        if (sectionContents.Count <= 0) return ParseFile();
+        var line = sectionContents.Peek();
             
-            if (_sectionEnd.Contains(line)) {
-                _openSection--;
-                sectionContents.Dequeue();
-                return ParseFile();
-            } else {
-                if (_sectionStart.Contains(line)) {
-                    _openSection++;
-                    line = GetNextLine(sectionContents);
-                    if (line != _dialect.StartTransaction()) {
-                        throw new InvalidFormatException(line);
-                    }
-                    _openTransaction++;
-                    section.Add(line);
-                    return ParseQueries(sectionContents, section);
-                }
-            }
-
+        if (_sectionEnd.Contains(line)) {
+            _openSection--;
+            sectionContents.Dequeue();
+            return ParseFile();
         }
-        return ParseFile();
+
+        if (!_sectionStart.Contains(line)) return ParseFile();
+        _openSection++;
+        line = GetNextLine(sectionContents);
+        if (line != _dialect.StartTransaction()) {
+            throw new InvalidFormatException(line);
+        }
+        _openTransaction++;
+        section.Add(line);
+        return ParseQueries(sectionContents, section);
 
     }
     private Queue<string>? ParseQueries(Queue<string> queries, List<string> section) {
-        if (queries.Count > 0) {
-            var line = GetNextLine(queries);
-            if (!line.Contains(_dialect.Terminator())) {
-                return ParseBlock(line, queries, section);
-            } else {
-                if (line == _dialect.StartTransaction()) {
-                    throw new InvalidFormatException(line);
-                }
+        if (queries.Count <= 0) return null;
+        var line = GetNextLine(queries);
+        if (!line.Contains(_dialect.Terminator())) {
+            return ParseBlock(line, queries, section);
+        }
 
-                if (line == _dialect.EndTransaction()) {
-                    _openTransaction--;
-                    section.Add(line);
-                    ParseSection(queries, section);
-                } else {
-                    section.Add(line);
-                    return ParseQueries(queries, section);
-                }
-            }
+        if (line == _dialect.StartTransaction()) {
+            throw new InvalidFormatException(line);
+        }
+
+        if (line == _dialect.EndTransaction()) {
+            _openTransaction--;
+            section.Add(line);
+            ParseSection(queries, section);
+        } else {
+            section.Add(line);
+            return ParseQueries(queries, section);
         }
         return null;
     }
@@ -125,10 +120,10 @@ internal class Parser : IParser {
             section.Add(_block.ToString());
             _block.Clear();
             return ParseQueries(blockContents, section);
-        } else {
-            _block.AppendLine(line);
-            return ParseBlock(null, blockContents, section);
         }
+
+        _block.AppendLine(line);
+        return ParseBlock(null, blockContents, section);
     }
     private void Validate() {
         if (_openSection > 0) {
@@ -139,8 +134,8 @@ internal class Parser : IParser {
         }
     }
     private int GetFirstSectionIndex(string[] content) {
-        var migrationSectionIndex = content.ToList().IndexOf(_scaffold.Scaffolding[1]);
-        var rollbackSectionIndex = content.ToList().IndexOf(_scaffold.Scaffolding[7]);
+        var migrationSectionIndex = content.ToList().IndexOf(_scaffold.GetScaffolding()[1]);
+        var rollbackSectionIndex = content.ToList().IndexOf(_scaffold.GetScaffolding()[7]);
         if (migrationSectionIndex < 0) {
             throw new MissingSectionException(Migration);
         }

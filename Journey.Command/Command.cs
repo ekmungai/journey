@@ -10,43 +10,43 @@ internal class Command {
     private readonly System.CommandLine.Command _validate;
     private readonly System.CommandLine.Command _history;
     private readonly System.CommandLine.Command _update;
-    private readonly Option<string> _path = new Option<string>(
+    private readonly Option<string> _path = new(
         aliases: ["-p", "--path"],
         description: "The path to the versions directory."
     ) { IsRequired = true };
-    private readonly Option<string> _connection = new Option<string>(
+    private readonly Option<string> _connection = new(
         aliases: ["-c", "--connection"],
         description: "The connection string for connecting to the database"
     ) { IsRequired = true };
-    private readonly Option<string> _database = new Option<string>(
+    private readonly Option<string> _database = new(
         aliases: ["-d", "--database"],
         description: "The type of the database to migrate."
     ) { IsRequired = true };
-    private readonly Option<string> _schema = new Option<string>(
+    private readonly Option<string> _schema = new(
         aliases: ["-s", "--schema"],
         description: "The schema to apply the migration to.",
         getDefaultValue: () => "public"
     );
-    private readonly Option<bool> _quiet = new Option<bool>(
+    private readonly Option<bool> _quiet = new(
         aliases: ["-q", "--quiet"],
         description: "Run the action without prompts.",
         getDefaultValue: () => false
     );
-    private readonly Option<int> _entries = new Option<int>(
+    private readonly Option<int> _entries = new(
         aliases: ["-e", "--entries"],
         description: "The number of versions back to retrieve.",
         getDefaultValue: () => 10
     );
-    private readonly Option<int?> _target = new Option<int?>(
+    private readonly Option<int?> _target = new(
         aliases: ["-t", "--target"],
         description: "The target version."
     );
-    private readonly Option<bool> _verbose = new Option<bool>(
+    private readonly Option<bool> _verbose = new(
         aliases: ["-v", "--verbose"],
         description: "Print out migration queries as they are executed.",
         getDefaultValue: () => false
     );
-    private readonly Option<bool> _dryRun = new Option<bool>(
+    private readonly Option<bool> _dryRun = new(
         aliases: ["-r", "--dry-run"],
         description: "Immediately rollback migrations after they have been executed.",
         getDefaultValue: () => false

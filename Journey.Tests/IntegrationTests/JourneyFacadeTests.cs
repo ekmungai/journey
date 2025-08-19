@@ -1,5 +1,3 @@
-
-using System.Collections;
 using System.IO.Abstractions.TestingHelpers;
 using System.Reflection;
 using Journey.Exceptions;
@@ -13,7 +11,7 @@ public class JourneyFacadeTest : IDisposable {
     private readonly JourneyFacade _journeyFacade;
     private readonly string _versionsDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "../../../../versions";
     private readonly AutoMocker _mocker = new(MockBehavior.Loose); // testing strings is such a pain >_<
-    private readonly string[] versions = [
+    private readonly string[] _versions = [
             """
             -- ------------------------------------------------------------------
             -- | Migration file formatting rules.                               |
@@ -169,10 +167,10 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestSerilogLoggerInformation() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddDirectory(_versionsDir);
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddDirectory(_versionsDir);
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        await _journeyFacade.Init(true, fileSystem);
 
         var logger = _mocker.GetMock<Serilog.ILogger>().Object;
         _journeyFacade.UseSerilogLogging(logger);
@@ -189,10 +187,10 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestSerilogLoggerError() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddDirectory(_versionsDir);
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddDirectory(_versionsDir);
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(
             """
             -- ------------------------------------------------------------------
             -- | Migration file formatting rules.                               |
@@ -231,7 +229,7 @@ public class JourneyFacadeTest : IDisposable {
             """
         ));
 
-        await _journeyFacade.Init(true, _fileSystem);
+        await _journeyFacade.Init(true, fileSystem);
 
         var logger = _mocker.GetMock<Serilog.ILogger>().Object;
         _journeyFacade.UseSerilogLogging(logger);
@@ -242,17 +240,15 @@ public class JourneyFacadeTest : IDisposable {
                 )));
 
         Assert.False(await _journeyFacade.Validate(1));
-        var invocation = _mocker.GetMock<Serilog.ILogger>()
-            .Invocations[0];
     }
 
     [Fact]
     public async Task TestSerilogLoggerDebug() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddDirectory(_versionsDir);
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddDirectory(_versionsDir);
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        await _journeyFacade.Init(true, fileSystem);
 
         var logger = _mocker.GetMock<Serilog.ILogger>().Object;
         _journeyFacade.UseSerilogLogging(logger);
@@ -269,10 +265,10 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestMicrosoftLoggerInformation() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddDirectory(_versionsDir);
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddDirectory(_versionsDir);
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        await _journeyFacade.Init(true, fileSystem);
 
         var logger = _mocker.GetMock<ILogger>().Object;
         _journeyFacade.UseMicrosoftLogging(logger);
@@ -287,11 +283,11 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestMicrosoftLoggerError() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddDirectory(_versionsDir);
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddDirectory(_versionsDir);
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
 
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(
             """
             -- ------------------------------------------------------------------
             -- | Migration file formatting rules.                               |
@@ -330,7 +326,7 @@ public class JourneyFacadeTest : IDisposable {
             """
         ));
 
-        await _journeyFacade.Init(true, _fileSystem);
+        await _journeyFacade.Init(true, fileSystem);
 
         var logger = _mocker.GetMock<ILogger>().Object;
         _journeyFacade.UseMicrosoftLogging(logger);
@@ -345,11 +341,11 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestMicrosoftLoggerDebug() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddDirectory(_versionsDir);
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddDirectory(_versionsDir);
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        await _journeyFacade.Init(true, fileSystem);
 
         var logger = _mocker.GetMock<ILogger>().Object;
         _journeyFacade.UseMicrosoftLogging(logger);
@@ -364,19 +360,19 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestValidateValidFile() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
 
-        await _journeyFacade.Init(true, _fileSystem);
+        await _journeyFacade.Init(true, fileSystem);
         Assert.True(await _journeyFacade.Validate(0));
     }
 
     [Fact]
     public async Task TestValidateInvalidFile() {
-        var _fileSystem = new MockFileSystem();
+        var fileSystem = new MockFileSystem();
         
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(
             """
             -- ------------------------------------------------------------------
             -- | Migration file formatting rules.                               |
@@ -415,17 +411,17 @@ public class JourneyFacadeTest : IDisposable {
             """
         ));
 
-        await _journeyFacade.Init(true, _fileSystem);
+        await _journeyFacade.Init(true, fileSystem);
 
         Assert.False(await _journeyFacade.Validate(1));
     }
 
     [Fact]
     public async Task TestMigrateSingleStep() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Migrate(1, false);
 
         await AssertDatabaseVersion(1);
@@ -433,12 +429,12 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestMigrateMultipleSteps() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(_versions[2]));
 
-        await _journeyFacade.Init(true, _fileSystem);
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Migrate(2, false);
 
         await AssertDatabaseVersion(2);
@@ -446,9 +442,9 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestMigrateUpToDateDatabase() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Update(null);
 
         await _journeyFacade.Migrate(0, false);
@@ -458,10 +454,10 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestDryRunMigrateSingleStep() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Migrate(null, true);
 
         await AssertDatabaseVersion(0);
@@ -469,12 +465,12 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestDryRunMigrateMultipleSteps() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(_versions[2]));
 
-        await _journeyFacade.Init(true, _fileSystem);
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Migrate(2, true);
 
         await AssertDatabaseVersion(0);
@@ -482,21 +478,21 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestMissingMigrationFileThrows() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        await _journeyFacade.Init(true, fileSystem);
         var ex = await Assert.ThrowsAsync<MissingMigrationFileException>(async () => await _journeyFacade.Migrate(1, false));
         Assert.Equal("Migration file for version 1 was not found", ex.Message);
     }
 
     [Fact]
     public async Task TestLowerVersionMigrationThrows() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(_versions[2]));
 
-        await _journeyFacade.Init(true, _fileSystem);
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Update(null);
 
         var ex = await Assert.ThrowsAsync<InvalidMigrationException>(async () => await _journeyFacade.Migrate(1, false));
@@ -506,12 +502,12 @@ public class JourneyFacadeTest : IDisposable {
     [Fact]
     public async Task TestHistoryDefaultEntries() {
         var now = DateTimeOffset.UtcNow;
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(_versions[2]));
 
-        await _journeyFacade.Init(true, _fileSystem);
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Update(null);
 
         var history = await _journeyFacade.History(10);
@@ -523,11 +519,11 @@ public class JourneyFacadeTest : IDisposable {
     [Fact]
     public async Task TestHistoryLimitedEntries() {
         var now = DateTimeOffset.UtcNow;
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(_versions[2]));
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Update(null);
 
         var history = await _journeyFacade.History(1);
@@ -538,12 +534,12 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestUpdateDatabaseUpgradeToLatest() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "3.sql"), new MockFileData(versions[3]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(_versions[2]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "3.sql"), new MockFileData(_versions[3]));
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Update(null);
 
         await AssertDatabaseVersion(3);
@@ -551,13 +547,13 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestUpdateDatabaseUpgradeToTarget() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "3.sql"), new MockFileData(versions[3]));
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(_versions[2]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "3.sql"), new MockFileData(_versions[3]));
 
-        await _journeyFacade.Init(true, _fileSystem);
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Update(2);
 
         await AssertDatabaseVersion(2);
@@ -565,13 +561,13 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestUpdateDatabaseDowngradeToTarget() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "3.sql"), new MockFileData(versions[3]));
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(_versions[2]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "3.sql"), new MockFileData(_versions[3]));
 
-        await _journeyFacade.Init(true, _fileSystem);
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Update(null);
 
         await _journeyFacade.Update(2);
@@ -581,10 +577,10 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestRollbackSingleStep() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Migrate(null, false);
         await _journeyFacade.Rollback(null);
 
@@ -593,12 +589,12 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestRollbackMultipleSteps() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(versions[2]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "3.sql"), new MockFileData(versions[3]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "2.sql"), new MockFileData(_versions[2]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "3.sql"), new MockFileData(_versions[3]));
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Update(null);
 
         await _journeyFacade.Rollback(-1);
@@ -608,9 +604,9 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestRollbackUpToDateDatabase() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Update(null);
 
         await _journeyFacade.Rollback(0);
@@ -620,10 +616,10 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestHigherVersionRollbackThrows() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(versions[1]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(_versions[1]));
+        await _journeyFacade.Init(true, fileSystem);
         await _journeyFacade.Update(null);
 
         var ex = await Assert.ThrowsAsync<InvalidRollbackException>(async () => await _journeyFacade.Rollback(2));
@@ -632,9 +628,9 @@ public class JourneyFacadeTest : IDisposable {
 
     [Fact]
     public async Task TestImpossibleRollbackThrows() {
-        var _fileSystem = new MockFileSystem();
-        _fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(versions[0]));
-        await _journeyFacade.Init(true, _fileSystem);
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        await _journeyFacade.Init(true, fileSystem);
         await Assert.ThrowsAsync<InvalidRollbackException>(async () => await _journeyFacade.Rollback(1));
     }
 

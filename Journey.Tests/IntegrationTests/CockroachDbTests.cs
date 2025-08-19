@@ -1,6 +1,6 @@
 
 namespace Journey.Tests.IntegrationTests;
 
-public class CockroachDbTest(CockroachDbFixture _container)
-    : GenericDbTests<CockroachDbFixture>(_container)
+public class CockroachDbTest(CockroachDbFixture container)
+    : GenericDbTests<CockroachDbFixture>(container)
 { }

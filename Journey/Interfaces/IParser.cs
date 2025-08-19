@@ -13,7 +13,7 @@ public interface IParser {
     /// <summary>
     /// Get the result of parsing a migration file.
     /// </summary>
-    /// <returns>A dictionary of the migration and rollback sections of the migration file.</returns>
+    /// <returns>A dictionary of the migration and rollback sections from the migration file.</returns>
     public Dictionary<string, List<string>> GetResult();
 
 }
