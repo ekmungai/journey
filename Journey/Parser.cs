@@ -22,7 +22,7 @@ internal class Parser : IParser {
     private readonly string[] _sectionEnd;
     public const string Migration = "Migration";
     public const string Rollback = "Rollback";
-    
+
     public Parser(string[] content, IDialect dialect) {
         _dialect = dialect;
         _scaffold = new Scaffold(dialect, null);
@@ -71,6 +71,7 @@ internal class Parser : IParser {
     private Queue<string> ParseSection(Queue<string> sectionContents, List<string> section) {
         if (sectionContents.Count > 0) {
             var line = sectionContents.Peek();
+            
             if (_sectionEnd.Contains(line)) {
                 _openSection--;
                 sectionContents.Dequeue();

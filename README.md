@@ -48,13 +48,13 @@ await journey.init(true);
 # sync the database
 await journey.Update();
 ```
-This will sync the database to the highest version available in the `versionsDirectory`. If you'd like to migrate up/down to a specific version, you can provide the target version number to the update function. 
+This will sync the database to the highest version available in the `versionsDirectory`. If you'd like to migrate up/rollback down to a specific version, you can provide the target version number to the update function. 
 
 ```c#
 await journey.Update(versionNumber);
 ```
 #### Logging
-By default, journey logs messages to the console using its internal logger. You can provide a custom logger by calling the `UseSerilogLogging` and `UseMicrosoftLogging` methods just before calling the update method.
+By default, journey logs messages to the console using its internal logger which simply writes to the console. You can provide a custom logger by calling the `UseSerilogLogging` and `UseMicrosoftLogging` methods just before calling the update method.
 ```c#
 # use a pre initialized serilog logger
 journey.UseSerilogLogging(logger);
@@ -66,17 +66,20 @@ journey.UseMicrosoftLogging(loggerFactory);
 ```
 
 ### Development
-For local development, the `Journey.Command` CLI tool is best suited. You can download it from the [releases](https://github.com/ekmungai/journey/releases) page.
+For local development, you can either use the stand alone the `Journey.Command` CLI tool or the `Journey.Net` tool if you have the .Net SDK installed. You can download the CLI tool from the [releases](https://github.com/ekmungai/journey/releases) page. Or you can install the .Net tool from Nuget.
+```bash
+dotnet tool install Journey.Net
+```
 
 #### Scaffolding
-The first step is to prepare the file version of the database, which you do by running the `scaffold` command.
+The first step is to prepare the file for the next version of the database, which you do by running the `scaffold` command.
 
 ```bash
 journey scaffold -p "path\to\versions-dir" -d sqlite -c "Data Source=journal.db"
 ```
 This will create a template with the sections required by the journey tool pre filled, as well as instructions on how to put in custom queries for your migration.
 
-NB: When running the tool against a database for the first time, you'll be prompted to confirm that you wish to initialize journey migrations on it. Confirming the prompt will create and apply a migration file that sets up the versions table.
+NB: When running the tool against a database for the first time, you'll be prompted to confirm that you wish to initialize journey migrations on it (Assuming your not using quiet mode). Confirming the prompt will create and apply a migration file that sets up the versions table.
 
 #### Validation
 After you've entered your queries in the migration and rollback section, the next section is to verify that your new migration file is actually runnable by the tool. You do this by running the validate command.

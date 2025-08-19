@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Journey.Tests", "Journey.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Journey.Command", "Journey.Command\Journey.Command.csproj", "{1476197D-4A59-4E97-AA6B-F2C0407D4E0C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Journey.Net", "Journey.Net\Journey.Net.csproj", "{D0D4B314-1F3E-4DAA-8A23-B463EE39A90A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{1476197D-4A59-4E97-AA6B-F2C0407D4E0C}.Release|x64.Build.0 = Release|Any CPU
 		{1476197D-4A59-4E97-AA6B-F2C0407D4E0C}.Release|x86.ActiveCfg = Release|Any CPU
 		{1476197D-4A59-4E97-AA6B-F2C0407D4E0C}.Release|x86.Build.0 = Release|Any CPU
+		{D0D4B314-1F3E-4DAA-8A23-B463EE39A90A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0D4B314-1F3E-4DAA-8A23-B463EE39A90A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0D4B314-1F3E-4DAA-8A23-B463EE39A90A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D0D4B314-1F3E-4DAA-8A23-B463EE39A90A}.Debug|x64.Build.0 = Debug|Any CPU
+		{D0D4B314-1F3E-4DAA-8A23-B463EE39A90A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D0D4B314-1F3E-4DAA-8A23-B463EE39A90A}.Debug|x86.Build.0 = Debug|Any CPU
+		{D0D4B314-1F3E-4DAA-8A23-B463EE39A90A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0D4B314-1F3E-4DAA-8A23-B463EE39A90A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0D4B314-1F3E-4DAA-8A23-B463EE39A90A}.Release|x64.ActiveCfg = Release|Any CPU
+		{D0D4B314-1F3E-4DAA-8A23-B463EE39A90A}.Release|x64.Build.0 = Release|Any CPU
+		{D0D4B314-1F3E-4DAA-8A23-B463EE39A90A}.Release|x86.ActiveCfg = Release|Any CPU
+		{D0D4B314-1F3E-4DAA-8A23-B463EE39A90A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

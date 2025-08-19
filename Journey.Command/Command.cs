@@ -2,7 +2,7 @@ using System.CommandLine;
 
 namespace Journey.Command;
 
-internal class JourneyCommand {
+internal class Command {
     private readonly RootCommand _root = new("Journey - Database Migration Tool");
     private readonly System.CommandLine.Command _scaffold;
     private readonly System.CommandLine.Command _migrate;
@@ -51,7 +51,7 @@ internal class JourneyCommand {
         description: "Immediately rollback migrations after they have been executed.",
         getDefaultValue: () => false
     );
-    public JourneyCommand() {
+    public Command() {
         _scaffold = new System.CommandLine.Command("scaffold", "Scaffold the next version migration file."){
             _path,
             _connection,
@@ -109,7 +109,7 @@ internal class JourneyCommand {
         };
     }
 
-    public JourneyCommand Build(
+    public Command Build(
         Func<string, string, string, string, bool, bool, Task> scaffoldHandler,
         Func<string, string, string, string, bool, int?, bool, bool, Task> migrateHandler,
         Func<string, string, string, string, bool, int?, bool, Task> rollbackHandler,

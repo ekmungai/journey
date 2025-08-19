@@ -1,0 +1,54 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\shared\shared.props" />
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>journey</ToolCommandName>
+        <RootNamespace>Journey.Net</RootNamespace>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageId>Journey.Net</PackageId>
+        <Title>.Net stepwise database migration tool</Title>
+        <Authors>Edward Mungai</Authors>
+        <Company>Microbooks.io</Company>
+        <PackageTags>mysql Command cassandra dotnet sqlite scripts postgresql journey migration
+            mariadb
+            mssql cockroachdb csharp-library stepwise </PackageTags>
+        <Description>Journey is a script based database migration tool that treats a migration a
+            journey, a collection of steps taken from the beginning (origin) state of the database
+            to the final (destination) state.</Description>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://ekmungai.github.io/journey-docs/</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/ekmungai/journey</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageIcon>logo.png</PackageIcon>
+        <Copyright>Copyright © Edward Mungai 2025</Copyright>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../LICENSE" Pack="true" PackagePath="" />
+        <None Include="../README.md" Pack="true" PackagePath="" />
+        <None Include="../logo.png" Pack="true" PackagePath="" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="..\Journey.Command\Command.cs" Link="Command.cs" />
+        <Compile Include="..\Journey.Command\Program.cs" Link="Program.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Journey\Journey.csproj" />
+    </ItemGroup>
+
+</Project>

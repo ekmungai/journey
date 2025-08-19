@@ -35,6 +35,8 @@ internal class Migrator(IFileManager fileManager, IDatabase database, bool? verb
                     Environment.Exit(-1);
                 }
             }
+        } else if (_currentVersion == -1) {
+            await Migrate(0, false);
         }
     }
     /// <inheritdoc/>

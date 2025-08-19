@@ -3,7 +3,7 @@ namespace Journey.Command;
 internal class Program {
     private static async Task<int> Main(string[] args) {
 
-        var command = new JourneyCommand();
+        var command = new Command();
 
         return await command.Build(
             RunScaffold,
