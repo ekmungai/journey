@@ -136,7 +136,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, bool? verb
 
     private async Task<Parser> ParseVersion(int version) {
         var content = await fileManager.ReadFile(version);
-        var parser = new Parser(content, database.GetDialect());
+        var parser = new Parser(version, content, database.GetDialect());
         parser.ParseFile();
         return parser;
     }

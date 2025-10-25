@@ -1,5 +1,6 @@
 using System.IO.Abstractions;
 using Journey.Databases;
+using Journey.Helpers;
 using Journey.Interfaces;
 using Journey.Loggers;
 using Microsoft.Extensions.Logging;
@@ -67,4 +68,11 @@ public class JourneyFacade(
     public void UseMicrosoftLogging(ILoggerFactory loggerFactory) {
         SetLogger(new MicrosoftLogger(loggerFactory));
     }
+
+    public JourneyFacade InitSync() {
+        AsyncHelper.RunSync(async () => await Init(true));
+        return this;
+    }
+
+    public void UpdateSync(int? target = null) => AsyncHelper.RunSync(async () => await Update(target));
 }

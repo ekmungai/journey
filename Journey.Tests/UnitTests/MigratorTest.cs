@@ -20,12 +20,14 @@ public class MigratorTest : IDisposable {
     public async Task TestInit() {
         List<string> fragments = [
             """
-            -- ------------------------------------------------------------------
+            ------------------------------------------------------------------
             -- | Migration file formatting rules.                               |
             -- | 1. There must be one and only one migration and one and only   |
             -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
+            -- | 2. Apart from the default transaction, you can add as many     |
+            -- | others as you need.                                            | 
+            -- | 3. The two sections and all transactions must be properly      |
+            -- | closed.                                                        |
             -- ******************************************************************
             """,
             "-- start migration",
@@ -71,13 +73,15 @@ public class MigratorTest : IDisposable {
     public async Task TestValidateValidFile() {
         string[] content = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -114,13 +118,15 @@ public class MigratorTest : IDisposable {
     public async Task TestValidateInvalidFile() {
         string[] content = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -149,7 +155,7 @@ public class MigratorTest : IDisposable {
         _mocker.GetMock<IFileManager>()
         .Setup(m => m.ReadFile(0))
         .ReturnsAsync(content);
-        
+
         Assert.False(await _migrator.Validate(0));
     }
 
@@ -157,13 +163,15 @@ public class MigratorTest : IDisposable {
     public async Task TestMigrateSingleStep() {
         string[] content = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -213,7 +221,7 @@ public class MigratorTest : IDisposable {
         .ReturnsAsync(content);
 
         SetupQueries(queries);
-        
+
         await _migrator.Migrate(null, false);
     }
 
@@ -221,13 +229,15 @@ public class MigratorTest : IDisposable {
     public async Task TestMigrateMultipleSteps() {
         string[] migration1 = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -250,13 +260,15 @@ public class MigratorTest : IDisposable {
 
         string[] migration2 = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -272,13 +284,15 @@ public class MigratorTest : IDisposable {
 
         string[] migration3 = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -336,7 +350,7 @@ public class MigratorTest : IDisposable {
         .ReturnsAsync(migration3);
 
         SetupQueries(migrationQueries);
-        
+
         await _migrator.Migrate(2, false);
     }
 
@@ -344,13 +358,15 @@ public class MigratorTest : IDisposable {
     public async Task TestMigrateDryRunSingleStep() {
         string[] content = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -412,13 +428,15 @@ public class MigratorTest : IDisposable {
     public async Task TestMigrateDryRunMultipleSteps() {
         string[] migration1 = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -441,13 +459,15 @@ public class MigratorTest : IDisposable {
 
         string[] migration2 = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -463,13 +483,15 @@ public class MigratorTest : IDisposable {
 
         string[] migration3 = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -552,7 +574,7 @@ public class MigratorTest : IDisposable {
         _mocker.GetMock<IDatabase>()
         .Setup(m => m.CurrentVersion())
         .ReturnsAsync(0);
-        
+
         await _migrator.Migrate(0, false);
     }
 
@@ -628,13 +650,15 @@ public class MigratorTest : IDisposable {
     public async Task TestUpdateDatabaseUpgradeToLatest() {
         string[] migration2 = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -650,13 +674,15 @@ public class MigratorTest : IDisposable {
 
         string[] migration3 = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -711,13 +737,15 @@ public class MigratorTest : IDisposable {
     public async Task TestUpdateDatabaseUpgradeToTarget() {
         string[] migration2 = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -733,13 +761,15 @@ public class MigratorTest : IDisposable {
 
         string[] migration3 = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -780,7 +810,7 @@ public class MigratorTest : IDisposable {
         .ReturnsAsync(migration2);
 
         SetupQueries(migrationQueries);
-        
+
         await _migrator.Update(2);
     }
 
@@ -788,13 +818,15 @@ public class MigratorTest : IDisposable {
     public async Task TestUpdateDatabaseDowngradeToTarget() {
         string[] migration3 = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -843,13 +875,15 @@ public class MigratorTest : IDisposable {
     public async Task TestRollbackSingleStep() {
         string[] content = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -903,12 +937,14 @@ public class MigratorTest : IDisposable {
     public async Task TestRollbackMultipleSteps() {
         string[] migration1 = [
             """
-            -- ------------------------------------------------------------------
+            ------------------------------------------------------------------
             -- | Migration file formatting rules.                               |
             -- | 1. There must be one and only one migration and one and only   |
             -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
+            -- | 2. Apart from the default transaction, you can add as many     |
+            -- | others as you need.                                            | 
+            -- | 3. The two sections and all transactions must be properly      |
+            -- | closed.                                                        |
             -- ******************************************************************
             """, "",
             "-- start migration", "",
@@ -932,12 +968,14 @@ public class MigratorTest : IDisposable {
 
         string[] migration2 = [
             """
-            -- ------------------------------------------------------------------
+            ------------------------------------------------------------------
             -- | Migration file formatting rules.                               |
             -- | 1. There must be one and only one migration and one and only   |
             -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
+            -- | 2. Apart from the default transaction, you can add as many     |
+            -- | others as you need.                                            | 
+            -- | 3. The two sections and all transactions must be properly      |
+            -- | closed.                                                        |
             -- ******************************************************************
             """, "",
             "-- start migration", "",
@@ -954,13 +992,15 @@ public class MigratorTest : IDisposable {
 
         string[] migration3 = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                -- | Migration file formatting rules.                               |
+                -- | 1. There must be one and only one migration and one and only   |
+                -- |    one rollback section.                                       |
+                -- | 2. Apart from the default transaction, you can add as many     |
+                -- | others as you need.                                            | 
+                -- | 3. The two sections and all transactions must be properly      |
+                -- | closed.                                                        |
+                -- ******************************************************************
             """, "",
             "-- start migration", "",
             "BEGIN;", "",
@@ -1013,7 +1053,7 @@ public class MigratorTest : IDisposable {
         .ReturnsAsync(migration3);
 
         SetupQueries(migrationQueries);
-        
+
         await _migrator.Rollback(-1);
     }
 
@@ -1026,7 +1066,7 @@ public class MigratorTest : IDisposable {
         _mocker.GetMock<IDatabase>()
         .Setup(m => m.CurrentVersion())
         .ReturnsAsync(0);
-        
+
         await _migrator.Rollback(0);
     }
 

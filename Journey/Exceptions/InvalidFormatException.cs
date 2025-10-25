@@ -4,6 +4,7 @@ namespace Journey.Exceptions;
 
 /// <summary>
 /// Migration file does not conform to the expected structure
-/// </summary>
+/// <param name="version">The version of the migration file.</param>
 /// <param name="line">The line in file that is invalid</param>
-internal class InvalidFormatException(string line) : ValidationException($"The migration file is malformed at: {line}");
+/// </summary>
+internal class InvalidFormatException(int version, string line) : ValidationException($"The migration file for version {version} is malformed at: {line}");

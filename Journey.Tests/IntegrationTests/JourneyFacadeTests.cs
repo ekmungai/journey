@@ -13,13 +13,15 @@ public class JourneyFacadeTest : IDisposable {
     private readonly AutoMocker _mocker = new(MockBehavior.Loose); // testing strings is such a pain >_<
     private readonly string[] _versions = [
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
 
             -- start migration
 
@@ -48,13 +50,15 @@ public class JourneyFacadeTest : IDisposable {
             -- end rollback
             """,
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
 
             -- start migration
 
@@ -82,13 +86,15 @@ public class JourneyFacadeTest : IDisposable {
             -- end rollback
             """,
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
 
             -- start migration
 
@@ -116,13 +122,15 @@ public class JourneyFacadeTest : IDisposable {
             -- end rollback
             """,
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
 
             -- start migration
 
@@ -192,13 +200,15 @@ public class JourneyFacadeTest : IDisposable {
         fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
         fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
 
             -- start migration
 
@@ -236,7 +246,7 @@ public class JourneyFacadeTest : IDisposable {
         _mocker.GetMock<Serilog.ILogger>()
             .Setup(m => m.Error(It.IsAny<InvalidFormatException>(),
                 It.Is<string>(
-                log => log.Contains("File for version 1 is invalid with error: 'The migration file is malformed at: BEGIN;'")
+                log => log.Contains("File for version 1 is invalid with error: 'The migration file for version 1 is malformed at: BEGIN;'")
                 )));
 
         Assert.False(await _journeyFacade.Validate(1));
@@ -289,13 +299,15 @@ public class JourneyFacadeTest : IDisposable {
 
         fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
 
             -- start migration
 
@@ -370,17 +382,19 @@ public class JourneyFacadeTest : IDisposable {
     [Fact]
     public async Task TestValidateInvalidFile() {
         var fileSystem = new MockFileSystem();
-        
+
         fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
         fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(
             """
-            -- ------------------------------------------------------------------
-            -- | Migration file formatting rules.                               |
-            -- | 1. There must be one and only one migration and one and only   |
-            -- |    one rollback section.                                       |
-            -- | 2. Only change the section between transaction blocks.         | 
-            -- | 3. Each migration and rollback must have only one transaction. |                                       |
-            -- ******************************************************************
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
 
             -- start migration
 

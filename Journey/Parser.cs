@@ -8,6 +8,7 @@ namespace Journey;
 
 /// <inheritdoc />
 internal class Parser : IParser {
+    private int _version;
     private int _openSection;
     private int _openTransaction;
     private readonly StringBuilder _block = new();
@@ -23,7 +24,8 @@ internal class Parser : IParser {
     public const string Migration = "Migration";
     public const string Rollback = "Rollback";
 
-    public Parser(string[] content, IDialect dialect) {
+    public Parser(int version, string[] content, IDialect dialect) {
+        _version = version; ;
         _dialect = dialect;
         _scaffold = new Scaffold(dialect, null);
         var firstSectionIndex = GetFirstSectionIndex(content);
@@ -71,7 +73,7 @@ internal class Parser : IParser {
     private Queue<string> ParseSection(Queue<string> sectionContents, List<string> section) {
         if (sectionContents.Count <= 0) return ParseFile();
         var line = sectionContents.Peek();
-            
+
         if (_sectionEnd.Contains(line)) {
             _openSection--;
             sectionContents.Dequeue();
@@ -79,31 +81,54 @@ internal class Parser : IParser {
         }
 
         if (!_sectionStart.Contains(line)) return ParseFile();
+
         _openSection++;
-        line = GetNextLine(sectionContents);
+        return ParseTransaction(sectionContents, section);
+    }
+
+    private Queue<string>? ParseTransaction(Queue<string> transactionContent, List<string> section) {
+        if (transactionContent.Count <= 0) return null;
+
+        var line = transactionContent.Peek();
+
+        if (_sectionEnd.Contains(line)) {
+            _openSection--;
+            transactionContent.Dequeue();
+            return ParseFile();
+        }
+
+        line = GetNextLine(transactionContent);
         if (line != _dialect.StartTransaction()) {
-            throw new InvalidFormatException(line);
+            throw new InvalidFormatException(_version, line);
         }
         _openTransaction++;
-        section.Add(line);
-        return ParseQueries(sectionContents, section);
 
+        if (line == _dialect.EndTransaction()) {
+            _openTransaction--;
+            section.Add(line);
+            ParseSection(transactionContent, section);
+        } else {
+            section.Add(line);
+            return ParseQueries(transactionContent, section);
+        }
+        return null;
     }
     private Queue<string>? ParseQueries(Queue<string> queries, List<string> section) {
         if (queries.Count <= 0) return null;
         var line = GetNextLine(queries);
-        if (!line.Contains(_dialect.Terminator())) {
-            return ParseBlock(line, queries, section);
-        }
 
         if (line == _dialect.StartTransaction()) {
-            throw new InvalidFormatException(line);
+            throw new InvalidFormatException(_version, line);
+        }
+
+        if (!line.Contains(_dialect.Terminator())) {
+            return ParseBlock(line, queries, section);
         }
 
         if (line == _dialect.EndTransaction()) {
             _openTransaction--;
             section.Add(line);
-            ParseSection(queries, section);
+            ParseTransaction(queries, section);
         } else {
             section.Add(line);
             return ParseQueries(queries, section);
@@ -126,23 +151,29 @@ internal class Parser : IParser {
         return ParseBlock(null, blockContents, section);
     }
     private void Validate() {
-        if (_openSection > 0) {
-            throw new OpenSectionException();
-        }
         if (_openTransaction > 0) {
-            throw new OpenTransactionException();
+            throw new OpenTransactionException(_version);
         }
     }
     private int GetFirstSectionIndex(string[] content) {
-        var migrationSectionIndex = content.ToList().IndexOf(_scaffold.GetScaffolding()[1]);
-        var rollbackSectionIndex = content.ToList().IndexOf(_scaffold.GetScaffolding()[7]);
-        if (migrationSectionIndex < 0) {
-            throw new MissingSectionException(Migration);
+        var migrationSectionStartIndex = content.ToList().IndexOf(_scaffold.GetScaffolding()[1]);
+        var rollbackSectionStartIndex = content.ToList().IndexOf(_scaffold.GetScaffolding()[7]);
+        var migrationSectionEndIndex = content.ToList().IndexOf(_scaffold.GetScaffolding()[6]);
+        var rollbackSectionEndIndex = content.ToList().IndexOf(_scaffold.GetScaffolding()[12]);
+
+        if (migrationSectionStartIndex < 0) {
+            throw new MissingSectionException(_version, Migration);
         }
-        if (rollbackSectionIndex < 0) {
-            throw new MissingSectionException(Rollback);
+        if (rollbackSectionStartIndex < 0) {
+            throw new MissingSectionException(_version, Rollback);
         }
-        return Math.Min(migrationSectionIndex, rollbackSectionIndex);
+        if (migrationSectionEndIndex < 0) {
+            throw new OpenSectionException(_version, Migration);
+        }
+        if (rollbackSectionEndIndex < 0) {
+            throw new OpenSectionException(_version, Rollback);
+        }
+        return Math.Min(migrationSectionStartIndex, rollbackSectionStartIndex);
     }
     private string GetNextLine(Queue<string> lines) {
         try {
@@ -151,7 +182,7 @@ internal class Parser : IParser {
             }
             return lines.Dequeue();
         } catch (InvalidOperationException) {
-            throw new OpenTransactionException();
+            throw new OpenTransactionException(_version);
         }
     }
     private bool IsComment(string line) => line[..2] == _dialect.Comment();

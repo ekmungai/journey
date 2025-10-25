@@ -13,8 +13,10 @@ internal record Scaffold {
                                    -- | Migration file formatting rules.                               |
                                    -- | 1. There must be one and only one migration and one and only   |
                                    -- |    one rollback section.                                       |
-                                   -- | 2. Only change the section between transaction blocks.         | 
-                                   -- | 3. Each migration and rollback must have only one transaction. |                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
                                    -- ******************************************************************
                                    """;
     private const string StartMigration = "start migration";
