@@ -35,6 +35,7 @@ Each version file is validated before execution which when combined with a dry r
 ## Usage
 
 ### Production
+#### .Net 
 To make use of Journey in an .NET production application, install it as a Nuget package:
 ```bash
 Install-Package Ekmungai.Journey
@@ -53,7 +54,7 @@ This will sync the database to the highest version available in the `versionsDir
 ```c#
 await journey.Update(versionNumber);
 ```
-#### Logging
+##### Logging
 By default, journey logs messages to the console using its internal logger which simply writes to the console. You can provide a custom logger by calling the `UseSerilogLogging` and `UseMicrosoftLogging` methods just before calling the update method.
 ```c#
 # use a pre initialized serilog logger
@@ -64,7 +65,11 @@ journey.UseMicrosoftLogging(logger);
 # Or
 journey.UseMicrosoftLogging(loggerFactory);
 ```
-
+#### Docker 
+Journey is also available as a lightweight docker image, which you can pull and run with the standard journey arguments. The only difference is the requirement to specify a volumne mount on the host running the container to the tools path option. Below is an example of running the tool as a docker container.
+```
+docker run -v /path/to/versions-dir/:/versions --rm journey migrate -p "/versions" -d sqlite -c "Data Source=journal.db" -q  
+```
 ### Development
 For local development, you can either use the stand alone the `Journey.Command` CLI tool or the `Journey.Net` tool if you have the .Net SDK installed. You can download the CLI tool from the [releases](https://github.com/ekmungai/journey/releases) page. Or you can install the .Net tool from Nuget.
 ```bash
