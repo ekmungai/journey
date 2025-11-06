@@ -24,7 +24,7 @@ public interface IDialect {
     /// The symbol for the end of a transaction for the dialect.
     /// </summary>
     /// <returns>A string representing the end of a transaction.</returns>
-    public string EndTransaction();
+    public string[] EndTransaction();
     /// <summary>
     /// SQL queries for creating the versions table for the dialect.
     /// </summary>

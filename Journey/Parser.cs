@@ -103,7 +103,7 @@ internal class Parser : IParser {
         }
         _openTransaction++;
 
-        if (line == _dialect.EndTransaction()) {
+        if (Array.Exists(_dialect.EndTransaction(), element => element.ToUpperInvariant() == line)) {
             _openTransaction--;
             section.Add(line);
             ParseSection(transactionContent, section);
@@ -125,7 +125,7 @@ internal class Parser : IParser {
             return ParseBlock(line, queries, section);
         }
 
-        if (line == _dialect.EndTransaction()) {
+        if (Array.Exists(_dialect.EndTransaction(), element => element.ToUpperInvariant() == line)) {
             _openTransaction--;
             section.Add(line);
             ParseTransaction(queries, section);

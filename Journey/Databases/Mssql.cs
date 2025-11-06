@@ -1,6 +1,8 @@
 
 using System.Data.SqlClient;
+using System.Text.RegularExpressions;
 using Journey.Dialects;
+using Journey.Exceptions;
 using Journey.Interfaces;
 using Journey.Models;
 
@@ -11,6 +13,7 @@ internal record Mssql : IDatabase {
     public const string Name = "mssql";
     private readonly SqlDialect _dbDialect = new MssqlDialect();
     private string _connectionString = null!;
+    private const string DatabaseNameRegex = "(?i)(database|initial catalog)=([^;]+)";
 
     /// <inheritdoc/>
     public Task<IDatabase> Connect(string connectionString) {
@@ -74,7 +77,38 @@ internal record Mssql : IDatabase {
         return _dbDialect;
     }
 
+    public async Task<bool> CheckDatabase() {
+        var databaseName = GetDatabaseName();
+
+        // Connect to 'master' maintenance database to check if target database exists
+        var maintenanceConnectionString = Regex.Replace(_connectionString, DatabaseNameRegex, "Database=master");
+
+        await using var connection = new SqlConnection(maintenanceConnectionString);
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT CAST(COUNT(*) AS BIT) FROM sys.databases WHERE name = '{databaseName}'";
+        return (bool)(await command.ExecuteScalarAsync())!;
+    }
+
+    /// <inheritdoc/>
+    public async Task InitDatabase() {
+        var databaseName = GetDatabaseName();
+
+        var maintenanceConnectionString = Regex.Replace(_connectionString, DatabaseNameRegex, "Database=master");
+
+        await using var connection = new SqlConnection(maintenanceConnectionString);
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"CREATE DATABASE [{databaseName}]";
+        await command.ExecuteNonQueryAsync();
+    }
+
     public void Dispose() {
         //
+    }
+
+    private string GetDatabaseName() {
+        var name = Regex.Match(_connectionString, DatabaseNameRegex).Groups[2].Value;
+        return !string.IsNullOrWhiteSpace(name) ? name : throw new MissingDatabaseNameException();
     }
 }

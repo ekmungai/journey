@@ -21,6 +21,21 @@ internal class Migrator(IFileManager fileManager, IDatabase database, bool? verb
 
     /// <inheritdoc/>
     public async Task Init(bool quiet) {
+
+        if (!await database.CheckDatabase()) {
+            if (quiet) {
+                await database.InitDatabase();
+            } else {
+                _logger.Information($"{_newLine}The Database has not been initialized. Would you like to do so now? [Y/n]");
+                var answer = Console.ReadLine();
+                if (answer != null && Yes.Contains(answer)) {
+                    await database.InitDatabase();
+                } else {
+                    Environment.Exit(-1);
+                }
+            }
+        }
+
         await InitState();
 
         if (!fileManager.FileExists(0)) {
@@ -80,7 +95,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, bool? verb
                 _logger.Information($"{_newLine}INFO: Dry run mode is enabled, rolling back migration changes");
                 await Rollback(currentVersion);
             } else {
-                _logger.Information($"{_newLine}The database was successfully migrated to version: {newVersion}{_newLine}");
+                _logger.Information($"{_newLine}The database was successfully migrated to version: {newVersion}");
             }
         } else {
             _logger.Information($"{_newLine}The database is up to date at Version: {currentVersion}{_newLine}");
@@ -128,9 +143,10 @@ internal class Migrator(IFileManager fileManager, IDatabase database, bool? verb
 
         if (upgrade.HasValue) {
             await Migrate(upgrade, false);
-        }
-        if (downgrade.HasValue) {
+        } else if (downgrade.HasValue) {
             await Rollback(downgrade);
+        } else {
+            _logger.Information($"{_newLine}The database is up to date at Version: {_currentVersion}{_newLine}");
         }
     }
 

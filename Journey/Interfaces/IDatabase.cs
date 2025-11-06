@@ -38,8 +38,16 @@ public interface IDatabase : IDisposable {
     /// <returns cref="Task"></returns>
     public Task<List<Itinerary>> GetItinerary(int entries);
     /// <summary>
-    /// Returns the Dialect of the Database.
+    /// Creates the Database if it doesn't exist yet.
     /// </summary>
     /// <returns cref="IDialect"></returns>
     public IDialect GetDialect();
+    /// <summary>
+    /// Checks if the Database exists.
+    /// </summary>
+    public Task<bool> CheckDatabase();
+    /// <summary>
+    /// Initialize the Database.
+    /// </summary>
+    public Task InitDatabase();
 }

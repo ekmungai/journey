@@ -1,4 +1,6 @@
+using System.Text.RegularExpressions;
 using Journey.Dialects;
+using Journey.Exceptions;
 using Journey.Interfaces;
 using Journey.Models;
 using Npgsql;
@@ -10,6 +12,7 @@ internal record Postgres : IDatabase {
     public const string Name = "postgres";
     private readonly SqlDialect _dialect = new PostgresDialect();
     private string _connectionString = null!;
+    private const string DatabaseNameRegex = "(?i)(database|db)=([^;]+)";
     private string _schema = "";
 
     /// <inheritdoc/>
@@ -76,7 +79,37 @@ internal record Postgres : IDatabase {
         return _dialect;
     }
 
+    public async Task<bool> CheckDatabase() {
+        var databaseName = GetDatabaseName();
+
+        // Connect to 'postgres' maintenance database to check if target database exists
+        var maintenanceConnectionString = Regex.Replace(_connectionString, DatabaseNameRegex, "Database=postgres");
+
+        await using var dataSource = NpgsqlDataSource.Create(maintenanceConnectionString);
+        await using var fetchCommand = dataSource.CreateCommand();
+        fetchCommand.CommandText = $"SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = '{databaseName}')";
+        return (bool)(await fetchCommand.ExecuteScalarAsync())!;
+    }
+
+    /// <inheritdoc/>
+    public async Task InitDatabase() {
+        var databaseName = GetDatabaseName();
+
+        var maintenanceConnectionString = Regex.Replace(_connectionString, DatabaseNameRegex, "Database=postgres");
+
+        await using var dataSource = NpgsqlDataSource.Create(maintenanceConnectionString);
+
+        await using var command = dataSource.CreateCommand();
+        command.CommandText = $"CREATE DATABASE {databaseName}";
+        command.ExecuteNonQuery();
+    }
+
     public void Dispose() {
         //
+    }
+
+    private string GetDatabaseName() {
+        var name = Regex.Match(_connectionString, DatabaseNameRegex).Groups[2].Value;
+        return !string.IsNullOrWhiteSpace(name) ? name : throw new MissingDatabaseNameException();
     }
 }

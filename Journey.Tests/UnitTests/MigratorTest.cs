@@ -41,12 +41,12 @@ public class MigratorTest : IDisposable {
                 author TEXT NOT NULL
             );
             """,
-            "END;",
+            "COMMIT;",
             "-- end migration",
             "-- start rollback",
             "BEGIN;",
             "DROP TABLE versions;",
-            "END;",
+            "COMMIT;",
             "-- end rollback",
             ];
 

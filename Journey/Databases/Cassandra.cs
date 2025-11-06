@@ -1,6 +1,7 @@
 
 using Cassandra;
 using Journey.Dialects;
+using Journey.Exceptions;
 using Journey.Interfaces;
 using Journey.Models;
 
@@ -11,9 +12,11 @@ internal record CassandraDb : IDatabase {
     public const string Name = "cassandra";
     private readonly CassandraDialect _dialect = new();
     private string _keySpace = null!;
+    private string _connectionString = null!;
     private ISession _session = null!;
     /// <inheritdoc/>
     public Task<IDatabase> Connect(string connectionString) {
+        _connectionString = connectionString;
         var cluster = Cluster.Builder()
             .WithConnectionString(connectionString)
             .Build();
@@ -66,10 +69,42 @@ internal record CassandraDb : IDatabase {
     public IDialect GetDialect() {
         return _dialect;
     }
+
+    public async Task<bool> CheckDatabase() {
+        var keyspaceName = GetKeyspaceName();
+
+        // Connect to 'system' keyspace to check if target keyspace exists
+        var cluster = Cluster.Builder()
+            .WithConnectionString(_connectionString)
+            .Build();
+
+        using var systemSession = cluster.Connect("system");
+        var statement = new SimpleStatement($"SELECT keyspace_name FROM system_schema.keyspaces WHERE keyspace_name = '{keyspaceName}'");
+        var result = await systemSession.ExecuteAsync(statement);
+        return result.Any();
+    }
+
+    /// <inheritdoc/>
+    public async Task InitDatabase() {
+        var keyspaceName = GetKeyspaceName();
+
+        var cluster = Cluster.Builder()
+            .WithConnectionString(_connectionString)
+            .Build();
+
+        using var systemSession = cluster.Connect("system");
+        var createKeyspaceQuery = _dialect.CreateKeySpace().Replace("[key_space]", keyspaceName);
+        await systemSession.ExecuteAsync(new SimpleStatement(createKeyspaceQuery));
+    }
+
     /// <summary>
     /// Disposes the database session
     /// </summary>
     public void Dispose() {
-        _session.Dispose();
+        _session?.Dispose();
+    }
+
+    private string GetKeyspaceName() {
+        return !string.IsNullOrWhiteSpace(_keySpace) ? _keySpace : throw new MissingDatabaseNameException();
     }
 }

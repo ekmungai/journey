@@ -65,6 +65,13 @@ internal record Sqlite : IDatabase {
         return _dialect;
     }
 
+    public async Task<bool> CheckDatabase() => await Task.FromResult(true);
+
+    public Task InitDatabase() {
+        // Not necessary as sqlite automatically creates database if it doesn't exist
+        return Task.CompletedTask;
+    }
+
     /// <summary>
     /// Closes the connection to the database
     /// </summary>

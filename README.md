@@ -44,7 +44,7 @@ Then during the startup of the application, add the following code:
 ```c#
 # initialize the library
 var journey = new JourneyFacade(databaseType, connectionString, versionsDirectory); 
-# initialize migrations (in quiet mode) in case its the first time
+# initialize database and migrations (in quiet mode) in case its the first time
 await journey.init(true);
 # sync the database
 await journey.Update();
@@ -66,7 +66,8 @@ journey.UseMicrosoftLogging(logger);
 journey.UseMicrosoftLogging(loggerFactory);
 ```
 #### Docker 
-Journey is also available as a lightweight docker image, which you can pull and run with the standard journey arguments. The only difference is the requirement to specify a volumne mount on the host running the container to the tools path option. Below is an example of running the tool as a docker container.
+Journey is also available as a docker image, which you can pull and run with the standard journey arguments. The only difference is the requirement to specify a volume mount on the host running the container to the tools path option pointing to the directory containing the migration files. Below is an example of running the tool as a docker container. The `-q` is also 
+required so as to ignore interactive prompts.
 ```
 docker run -v /path/to/versions-dir/:/versions --rm journey migrate -p "/versions" -d sqlite -c "Data Source=journal.db" -q  
 ```

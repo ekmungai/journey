@@ -27,7 +27,7 @@ internal record CassandraDialect : SqlDialect {
     /// <inheritdoc/>
     public override string HistoryQuery() => "SELECT * FROM versions LIMIT [entries];";
     /// <inheritdoc/>
-    public override string EndTransaction() => "";
+    public override string[] EndTransaction() => [""];
     /// The SQL query for creating a key space in cassandra
     public string CreateKeySpace() => """
                                       CREATE KEYSPACE IF NOT EXISTS [key_space]

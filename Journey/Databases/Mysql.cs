@@ -1,5 +1,7 @@
 
+using System.Text.RegularExpressions;
 using Journey.Dialects;
+using Journey.Exceptions;
 using Journey.Interfaces;
 using Journey.Models;
 using MySqlConnector;
@@ -11,6 +13,7 @@ internal record Mysql : IDatabase {
     public const string Name = "mysql";
     private readonly SqlDialect _dbDialect = new MysqlDialect();
     private string _connectionString = null!;
+    private const string DatabaseNameRegex = "(?i)(database|db)=([^;]+)";
 
     /// <inheritdoc/>
     public Task<IDatabase> Connect(string connectionString) {
@@ -74,7 +77,36 @@ internal record Mysql : IDatabase {
         return _dbDialect;
     }
 
+    public async Task<bool> CheckDatabase() {
+        var databaseName = GetDatabaseName();
+
+        // Connect without specifying a database to check if target database exists
+        var maintenanceConnectionString = Regex.Replace(_connectionString, DatabaseNameRegex + ";?", "");
+
+        await using var connection = new MySqlConnection(maintenanceConnectionString);
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT EXISTS(SELECT 1 FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{databaseName}')";
+        return Convert.ToBoolean(await command.ExecuteScalarAsync());
+    }
+
+    /// <inheritdoc/>
+    public async Task InitDatabase() {
+        var databaseName = GetDatabaseName();
+
+        await using var connection = new MySqlConnection(Regex.Replace(_connectionString, DatabaseNameRegex + ";?", ""));
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"CREATE DATABASE `{databaseName}`";
+        await command.ExecuteNonQueryAsync();
+    }
+
     public void Dispose() {
         //
+    }
+
+    private string GetDatabaseName() {
+        var name = Regex.Match(_connectionString, DatabaseNameRegex).Groups[2].Value;
+        return !string.IsNullOrWhiteSpace(name) ? name : throw new MissingDatabaseNameException();
     }
 }

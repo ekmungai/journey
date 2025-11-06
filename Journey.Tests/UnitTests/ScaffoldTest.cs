@@ -39,7 +39,7 @@ public class ScaffoldTest {
                 author)
             VALUES ({version}, '', '', '');
             """, output);
-        Assert.Contains("END;", output);
+        Assert.Contains("COMMIT;", output);
         Assert.Contains("-- end migration", output);
         #endregion
 
@@ -48,7 +48,7 @@ public class ScaffoldTest {
         Assert.Contains("-- start rollback", output);
         Assert.Contains("-- SCAFFOLDING: Enter your rollback queries here ..", output);
         Assert.Contains($"DELETE FROM versions WHERE version = {version}", output);
-        Assert.Contains("END;", output);
+        Assert.Contains("COMMIT;", output);
         Assert.Contains("-- end rollback", output);
         #endregion
     }
@@ -76,7 +76,7 @@ public class ScaffoldTest {
                 author TEXT NOT NULL
             );
             """, output);
-        Assert.Contains("END;", output);
+        Assert.Contains("COMMIT;", output);
         Assert.Contains("-- end migration", output);
         #endregion
 
@@ -84,7 +84,7 @@ public class ScaffoldTest {
         Assert.Contains("BEGIN;", output);
         Assert.Contains("-- start rollback", output);
         Assert.Contains("DROP TABLE versions;", output);
-        Assert.Contains("END;", output);
+        Assert.Contains("COMMIT;", output);
         Assert.Contains("-- end rollback", output);
         #endregion
     }

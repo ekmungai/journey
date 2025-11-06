@@ -11,7 +11,7 @@ internal abstract record SqlDialect : IDialect {
     /// <inheritdoc/>
     public virtual string StartTransaction() => "BEGIN;";
     /// <inheritdoc/>
-    public virtual string EndTransaction() => "END;";
+    public virtual string[] EndTransaction() => ["COMMIT;", "END;"];
     /// <inheritdoc/>
     public virtual string DeleteVersion() => "DELETE FROM versions WHERE version = [versionNumber];";
     /// <inheritdoc/>

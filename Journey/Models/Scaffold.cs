@@ -51,10 +51,10 @@ internal record Scaffold {
         dialect.DeleteVersion();
         Scaffolding.Insert(2, dialect.StartTransaction());
         Scaffolding.Insert(4, dialect.InsertVersion().Replace("[versionNumber]", version.ToString()));
-        Scaffolding.Insert(5, dialect.EndTransaction());
+        Scaffolding.Insert(5, dialect.EndTransaction()[0]);
         Scaffolding.Insert(8, dialect.StartTransaction());
         Scaffolding.Insert(10, dialect.DeleteVersion().Replace("[versionNumber]", version.ToString()));
-        Scaffolding.Insert(11, dialect.EndTransaction());
+        Scaffolding.Insert(11, dialect.EndTransaction()[0]);
         _dialect = dialect;
     }
 
