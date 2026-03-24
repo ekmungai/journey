@@ -1098,6 +1098,56 @@ public class MigratorTest : IDisposable {
         await Assert.ThrowsAsync<InvalidRollbackException>(async () => await _migrator.Rollback(null));
     }
 
+    [Fact]
+    public async Task TestUpdateSelectsMaxVersionNotLastInList() {
+        // Simulates filesystem lexicographic ordering where "21.sql" sorts before "9.sql",
+        // so GetMap returns [21, 9]. The current version is 20, so Update should migrate
+        // to max([21, 9]) = 21, not treat _map[^1] = 9 as the latest.
+        string[] migration21 = [
+            "-- start migration", "",
+            "BEGIN;", "",
+            "INSERT INTO versions (version, description, run_by, author) VALUES (21, 'version 21', 'test', 'test');", "",
+            "END;", "",
+            "-- end migration", "",
+            "-- start rollback", "",
+            "BEGIN;", "",
+            "DELETE FROM versions WHERE version = 21;", "",
+            "END;", "",
+            "-- end rollback", "",
+        ];
+
+        string[] migrationQueries = [
+            "BEGIN;",
+            "INSERT INTO versions (version, description, run_by, author) VALUES (21, 'version 21', 'test', 'test');",
+            "END;",
+        ];
+
+        _mocker.GetMock<IDatabase>()
+        .Setup(m => m.GetDialect())
+        .Returns(new SQliteDialect());
+
+        _mocker.GetMock<IFileManager>()
+            .Setup(m => m.FileExists(0))
+            .Returns(true);
+
+        // Return map in lexicographic order: 21.sql sorts before 9.sql on the filesystem
+        _mocker.GetMock<IFileManager>()
+        .Setup(m => m.GetMap())
+        .Returns([21, 9]);
+
+        _mocker.GetMock<IDatabase>()
+        .Setup(m => m.CurrentVersion())
+        .ReturnsAsync(20);
+
+        _mocker.GetMock<IFileManager>()
+        .Setup(m => m.ReadFile(21))
+        .ReturnsAsync(migration21);
+
+        SetupQueries(migrationQueries);
+
+        await _migrator.Update();
+    }
+
     private bool AssertFragments(string source, List<string> fragments)
     => fragments.TrueForAll(source.Contains);
 

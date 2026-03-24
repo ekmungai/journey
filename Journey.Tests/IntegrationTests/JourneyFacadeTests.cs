@@ -648,6 +648,36 @@ public class JourneyFacadeTest : IDisposable {
         await Assert.ThrowsAsync<InvalidRollbackException>(async () => await _journeyFacade.Rollback(1));
     }
 
+    [Fact]
+    public async Task TestUpdateSelectsMaxVersionWithNonContiguousFileNumbers() {
+        // Files 9 and 21 are present. When sorted alphabetically by the filesystem,
+        // "21.sql" appears before "9.sql" so _map.Last() = 9 (the bug).
+        // _map.Max() = 21 (the fix). Verify that Update reaches version 21.
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        for (var i = 1; i <= 21; i++) {
+            fileSystem.AddFile(Path.Combine(_versionsDir, $"{i}.sql"), new MockFileData(SimpleMigration(i)));
+        }
+        await _journeyFacade.Init(true, fileSystem);
+        await _journeyFacade.Update(null);
+
+        await AssertDatabaseVersion(21);
+    }
+
+    private static string SimpleMigration(int version) =>
+        $"""
+        -- start migration
+        BEGIN;
+        INSERT INTO versions (version, description, run_by, author) VALUES ({version}, 'Version {version}', 'test', 'test');
+        END;
+        -- end migration
+        -- start rollback
+        BEGIN;
+        DELETE FROM versions WHERE version = {version};
+        END;
+        -- end rollback
+        """;
+
     private async Task AssertDatabaseVersion(int version) {
         var db = _journeyFacade.GetDatabase();
         var newVersion = await db.CurrentVersion();

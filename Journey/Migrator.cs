@@ -129,7 +129,7 @@ internal class Migrator(IFileManager fileManager, IDatabase database, bool? verb
         await Init(true);
         int? upgrade = null;
         int? downgrade = null;
-        var latest = _map[^1];
+        var latest = _map.Max();
 
         if (target > _currentVersion) {
             upgrade = target;

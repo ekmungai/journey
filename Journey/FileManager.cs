@@ -11,8 +11,7 @@ internal class FileManager(string versionsDir, IFileSystem fileSystem) : IFileMa
     public List<int> GetMap() {
         var versionNumbers = new List<int>();
         foreach (var file in fileSystem.Directory.GetFiles(versionsDir, "*.sql")) {
-            var fileName = Path.GetFileName(file);
-            versionNumbers.Add(int.Parse(fileName.Split('.')[0]));
+            versionNumbers.Add(int.Parse(Path.GetFileNameWithoutExtension(file)));
         }
         return versionNumbers;
     }
