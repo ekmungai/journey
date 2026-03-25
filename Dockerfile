@@ -1,5 +1,5 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0-azurelinux3.0 AS build
-ARG BUILD_CONFIGURATION=Releaseb
+ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY /Journey/ ./Journey/
 COPY /shared/ ./shared/
