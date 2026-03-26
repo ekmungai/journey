@@ -6,8 +6,7 @@
         <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <RuntimeIdentifiers>win-x64;osx-x64;linux-x64</RuntimeIdentifiers>
-        <PackAsTool>true</PackAsTool>
+<PackAsTool>true</PackAsTool>
         <ToolCommandName>journey</ToolCommandName>
         <RootNamespace>Journey.Net</RootNamespace>
     </PropertyGroup>
