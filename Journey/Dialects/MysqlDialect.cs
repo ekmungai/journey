@@ -9,7 +9,8 @@ internal record MysqlDialect : SqlDialect {
                                                          run_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                                          description varchar(1000) NOT NULL,
                                                          run_by varchar(100) NOT NULL,
-                                                         author varchar(100) NOT NULL
+                                                         author varchar(100) NOT NULL,
+                                                         INDEX idx_versions_version (version)
                                                      );
                                                      """;
     /// <inheritdoc/>

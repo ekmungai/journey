@@ -11,6 +11,7 @@ internal record SQliteDialect : SqlDialect {
                                                          run_by TEXT NOT NULL,
                                                          author TEXT NOT NULL
                                                      );
+                                                     CREATE INDEX IF NOT EXISTS idx_version ON versions (version);
                                                      """;
     /// <inheritdoc/>
     public override string InsertVersion() => """

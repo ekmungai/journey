@@ -49,7 +49,7 @@ publish/*
 scripts/*
 *.user
 *.xml
-
+settings.local.json
 # MSBuild Binary and Structured Log
 *.binlog
 

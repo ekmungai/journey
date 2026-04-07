@@ -4,7 +4,7 @@ namespace Journey.Dialects;
 internal record MssqlDialect : SqlDialect {
     /// <inheritdoc/>
     public override string MigrateVersionsTable() => """
-                                                     IF  NOT EXISTS (SELECT * FROM sys.objects 
+                                                     IF  NOT EXISTS (SELECT * FROM sys.objects
                                                      WHERE object_id = OBJECT_ID(N'[dbo].[Versions]') AND type in (N'U'))
                                                      CREATE TABLE  [dbo].[Versions] (
                                                          Version INTEGER NOT NULL,
@@ -13,6 +13,8 @@ internal record MssqlDialect : SqlDialect {
                                                          RunBy varchar(100) NOT NULL,
                                                          Author varchar(100) NOT NULL
                                                      );
+                                                     IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Versions_Version' AND object_id = OBJECT_ID(N'[dbo].[Versions]'))
+                                                         CREATE INDEX [IX_Versions_Version] ON [dbo].[Versions] ([Version]);
                                                      """;
     /// <inheritdoc/>
     public override string InsertVersion() => """

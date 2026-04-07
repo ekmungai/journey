@@ -11,6 +11,7 @@ internal record PostgresDialect : SqlDialect {
                                                          run_by varchar(100) NOT NULL,
                                                          author varchar(100) NOT NULL
                                                      );
+                                                     CREATE INDEX IF NOT EXISTS idx_version ON versions (version);
                                                      """;
     /// <inheritdoc/>
     public override string InsertVersion() => """
