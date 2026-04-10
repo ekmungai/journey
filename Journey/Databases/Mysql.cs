@@ -15,9 +15,30 @@ internal record Mysql : IDatabase {
     private string _connectionString = null!;
     private const string DatabaseNameRegex = "(?i)(database|db)=([^;]+)";
 
+    internal static string NormalizeConnectionString(string connectionString) {
+        if (!connectionString.StartsWith("mysql://", StringComparison.OrdinalIgnoreCase) &&
+            !connectionString.StartsWith("mysql+tcp://", StringComparison.OrdinalIgnoreCase) &&
+            !connectionString.StartsWith("mariadb://", StringComparison.OrdinalIgnoreCase))
+            return connectionString;
+
+        var uriString = Regex.Replace(connectionString, @"^(?i)(mysql\+tcp|mariadb)://", "mysql://");
+        var uri = new Uri(uriString);
+        var builder = new MySqlConnectionStringBuilder {
+            Server = uri.Host,
+            Database = uri.AbsolutePath.TrimStart('/')
+        };
+        if (uri.Port > 0) builder.Port = (uint)uri.Port;
+        var userInfo = uri.UserInfo.Split(':');
+        if (userInfo.Length > 0 && !string.IsNullOrEmpty(userInfo[0]))
+            builder.UserID = Uri.UnescapeDataString(userInfo[0]);
+        if (userInfo.Length > 1)
+            builder.Password = Uri.UnescapeDataString(userInfo[1]);
+        return builder.ConnectionString;
+    }
+
     /// <inheritdoc/>
     public Task<IDatabase> Connect(string connectionString) {
-        _connectionString = connectionString;
+        _connectionString = NormalizeConnectionString(connectionString);
         return Task.FromResult<IDatabase>(this);
     }
 

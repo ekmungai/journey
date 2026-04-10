@@ -15,9 +15,28 @@ internal record Mssql : IDatabase {
     private string _connectionString = null!;
     private const string DatabaseNameRegex = "(?i)(database|initial catalog)=([^;]+)";
 
+    internal static string NormalizeConnectionString(string connectionString) {
+        if (!connectionString.StartsWith("sqlserver://", StringComparison.OrdinalIgnoreCase) &&
+            !connectionString.StartsWith("mssql://", StringComparison.OrdinalIgnoreCase))
+            return connectionString;
+
+        var uriString = Regex.Replace(connectionString, @"^(?i)mssql://", "sqlserver://");
+        var uri = new Uri(uriString);
+        var builder = new SqlConnectionStringBuilder {
+            DataSource = uri.Port > 0 ? $"{uri.Host},{uri.Port}" : uri.Host,
+            InitialCatalog = uri.AbsolutePath.TrimStart('/')
+        };
+        var userInfo = uri.UserInfo.Split(':');
+        if (userInfo.Length > 0 && !string.IsNullOrEmpty(userInfo[0]))
+            builder.UserID = Uri.UnescapeDataString(userInfo[0]);
+        if (userInfo.Length > 1)
+            builder.Password = Uri.UnescapeDataString(userInfo[1]);
+        return builder.ConnectionString;
+    }
+
     /// <inheritdoc/>
     public Task<IDatabase> Connect(string connectionString) {
-        _connectionString = connectionString;
+        _connectionString = NormalizeConnectionString(connectionString);
         return Task.FromResult<IDatabase>(this);
     }
 

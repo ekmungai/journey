@@ -1,4 +1,5 @@
 using System.Data.SQLite;
+using System.Text.RegularExpressions;
 using Journey.Dialects;
 using Journey.Interfaces;
 using Journey.Models;
@@ -11,9 +12,25 @@ internal record Sqlite : IDatabase {
     private readonly SqlDialect _dialect = new SQliteDialect();
     private SQLiteConnection _connection = null!;
 
+    internal static string NormalizeConnectionString(string connectionString) {
+        if (!connectionString.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
+            return connectionString;
+
+        if (connectionString.StartsWith("file::memory:", StringComparison.OrdinalIgnoreCase))
+            return "Data Source=:memory:";
+
+        // Strip "file:" prefix and optional authority ("//host"), keeping the path
+        var path = Regex.Replace(connectionString, @"(?i)^file:(//[^/]*)?", "");
+        // Drop any SQLite URI query parameters (e.g. ?cache=shared)
+        var queryIndex = path.IndexOf('?');
+        if (queryIndex >= 0) path = path[..queryIndex];
+
+        return $"Data Source={path}";
+    }
+
     /// <inheritdoc/>
     public async Task<IDatabase> Connect(string connectionString) {
-        _connection = new SQLiteConnection(connectionString);
+        _connection = new SQLiteConnection(NormalizeConnectionString(connectionString));
         await _connection.OpenAsync();
         return this;
     }
