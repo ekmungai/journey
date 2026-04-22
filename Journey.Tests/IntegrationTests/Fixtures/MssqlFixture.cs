@@ -1,4 +1,4 @@
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Journey.Databases;
 using Journey.Interfaces;
 using Testcontainers.MsSql;
