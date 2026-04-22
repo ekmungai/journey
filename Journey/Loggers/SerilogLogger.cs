@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Journey.Interfaces;
 
 namespace Journey.Loggers;
