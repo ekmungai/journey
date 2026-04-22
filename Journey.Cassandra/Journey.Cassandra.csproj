@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\shared\shared.props" />
+
+    <PropertyGroup>
+        <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PackageId>Ekmungai.Journey.Cassandra</PackageId>
+        <Authors>Edward Mungai</Authors>
+        <Title>Journey - Cassandra</Title>
+        <Company>Microbooks.io</Company>
+        <PackageTags>cassandra journey migration dotnet</PackageTags>
+        <Description>Adds Apache Cassandra support to Journey.</Description>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://ekmungai.github.io/journey-docs/</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/ekmungai/journey</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageIcon>logo.png</PackageIcon>
+        <Copyright>Copyright © Edward Mungai 2025</Copyright>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../LICENSE" Pack="true" PackagePath="" />
+        <None Include="../README.md" Pack="true" PackagePath="" />
+        <None Include="../logo.png" Pack="true" PackagePath="" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>Journey.Tests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CassandraCSharpDriver" Version="3.22.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Journey\Journey.csproj" />
+    </ItemGroup>
+
+</Project>

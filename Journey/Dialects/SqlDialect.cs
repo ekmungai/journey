@@ -3,7 +3,7 @@ using Journey.Interfaces;
 namespace Journey.Dialects;
 
 /// <inheritdoc/>
-internal abstract record SqlDialect : IDialect {
+public abstract record SqlDialect : IDialect {
     /// <inheritdoc/>
     public abstract string MigrateVersionsTable();
     /// <inheritdoc/>

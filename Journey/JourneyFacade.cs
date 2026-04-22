@@ -1,5 +1,5 @@
+using System.Collections.Concurrent;
 using System.IO.Abstractions;
-using Journey.Databases;
 using Journey.Helpers;
 using Journey.Interfaces;
 using Journey.Loggers;
@@ -16,25 +16,24 @@ public class JourneyFacade(
     string? schema,
     bool? verbose
 ) : IJourneyFacade, IDisposable {
+    private static readonly ConcurrentDictionary<string, Func<string, string?, Task<IDatabase>>> _registry = new();
     private Migrator _migrator = null!;
     private IDatabase _database = null!;
+
+    /// <summary>Registers a database factory for a given database type name.</summary>
+    public static void RegisterDatabase(string name, Func<string, string?, Task<IDatabase>> factory)
+        => _registry[name] = factory;
 
     private void SetLogger(ILogger logger) {
         _migrator.SetLogger(logger);
     }
 
     public async Task Init(bool quiet, IFileSystem? fileSystem = null) {
-        _database = databaseType switch {
-            Sqlite.Name => await new Sqlite().Connect(connectionString),
-            Postgres.Name => await new Postgres().Connect(connectionString, schema!),
-            TimescaleDb.Name => await new TimescaleDb().Connect(connectionString, schema!),
-            CockroachDb.Name => await new CockroachDb().Connect(connectionString, schema!),
-            Mysql.Name => await new Mysql().Connect(connectionString, schema!),
-            Mariadb.Name => await new Mariadb().Connect(connectionString, schema!),
-            Mssql.Name => await new Mssql().Connect(connectionString),
-            CassandraDb.Name => await new CassandraDb().Connect(connectionString),
-            _ => await new Sqlite().Connect(connectionString),
-        };
+        if (!_registry.TryGetValue(databaseType, out var factory))
+            throw new NotSupportedException(
+                $"Database type '{databaseType}' is not registered. " +
+                $"Add a reference to the Ekmungai.Journey.* package for your database.");
+        _database = await factory(connectionString, schema);
         _migrator = new Migrator(new FileManager(versionsDir, fileSystem ?? new FileSystem()), _database, verbose);
         await _migrator.Init(quiet);
     }

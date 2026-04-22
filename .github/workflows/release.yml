@@ -27,11 +27,44 @@ jobs:
       - name: Test
         run: dotnet test --no-build --configuration Release --verbosity normal
 
-      - name: Pack Journey
+      - name: Pack Journey (core)
         run: dotnet pack Journey/Journey.csproj --no-build --configuration Release --output ./nupkgs
 
-      - name: Pack Journey.Net
+      - name: Pack Journey.Postgres
+        run: dotnet pack Journey.Postgres/Journey.Postgres.csproj --no-build --configuration Release --output ./nupkgs
+
+      - name: Pack Journey.MySql
+        run: dotnet pack Journey.MySql/Journey.MySql.csproj --no-build --configuration Release --output ./nupkgs
+
+      - name: Pack Journey.Sqlite
+        run: dotnet pack Journey.Sqlite/Journey.Sqlite.csproj --no-build --configuration Release --output ./nupkgs
+
+      - name: Pack Journey.Mssql
+        run: dotnet pack Journey.Mssql/Journey.Mssql.csproj --no-build --configuration Release --output ./nupkgs
+
+      - name: Pack Journey.Cassandra
+        run: dotnet pack Journey.Cassandra/Journey.Cassandra.csproj --no-build --configuration Release --output ./nupkgs
+
+      - name: Pack Journey.All (meta-package)
+        run: dotnet pack Journey.All/Journey.All.csproj --no-build --configuration Release --output ./nupkgs
+
+      - name: Pack Journey.Net (all-in-one tool)
         run: dotnet pack Journey.Net/Journey.Net.csproj --no-build --configuration Release --output ./nupkgs
+
+      - name: Pack Journey.Net.Postgres
+        run: dotnet pack Journey.Net.Postgres/Journey.Net.Postgres.csproj --no-build --configuration Release --output ./nupkgs
+
+      - name: Pack Journey.Net.MySql
+        run: dotnet pack Journey.Net.MySql/Journey.Net.MySql.csproj --no-build --configuration Release --output ./nupkgs
+
+      - name: Pack Journey.Net.Sqlite
+        run: dotnet pack Journey.Net.Sqlite/Journey.Net.Sqlite.csproj --no-build --configuration Release --output ./nupkgs
+
+      - name: Pack Journey.Net.Mssql
+        run: dotnet pack Journey.Net.Mssql/Journey.Net.Mssql.csproj --no-build --configuration Release --output ./nupkgs
+
+      - name: Pack Journey.Net.Cassandra
+        run: dotnet pack Journey.Net.Cassandra/Journey.Net.Cassandra.csproj --no-build --configuration Release --output ./nupkgs
     
         # Get a short-lived NuGet API key
       - name: NuGet login (OIDC → temp API key)

@@ -1,15 +1,15 @@
 using System.Data.SQLite;
-using Journey.Databases;
+using SqliteDb = Journey.Databases.Sqlite;
 
 namespace Journey.Tests.IntegrationTests;
 
 public class SqliteTest {
-    private readonly Sqlite _database = new();
+    private readonly SqliteDb _database = new();
     private readonly string _connectionString = "Data Source=:memory:";
 
     [Fact]
     public async Task TestConnect() {
-        Assert.IsType<Sqlite>(await _database.Connect(_connectionString));
+        Assert.IsType<SqliteDb>(await _database.Connect(_connectionString));
     }
 
     [Fact]

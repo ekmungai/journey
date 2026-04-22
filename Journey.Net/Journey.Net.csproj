@@ -47,7 +47,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Journey\Journey.csproj" />
+        <ProjectReference Include="..\Journey.Postgres\Journey.Postgres.csproj" />
+        <ProjectReference Include="..\Journey.MySql\Journey.MySql.csproj" />
+        <ProjectReference Include="..\Journey.Sqlite\Journey.Sqlite.csproj" />
+        <ProjectReference Include="..\Journey.Mssql\Journey.Mssql.csproj" />
+        <ProjectReference Include="..\Journey.Cassandra\Journey.Cassandra.csproj" />
     </ItemGroup>
 
 </Project>

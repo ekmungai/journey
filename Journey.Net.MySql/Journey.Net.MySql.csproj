@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\shared\shared.props" />
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>journey-mysql</ToolCommandName>
+        <RootNamespace>Journey.Net</RootNamespace>
+        <PackageId>Journey.Net.MySql</PackageId>
+        <Title>Journey .NET tool - MySQL / MariaDB</Title>
+        <Authors>Edward Mungai</Authors>
+        <Company>Microbooks.io</Company>
+        <PackageTags>mysql mariadb journey migration dotnet tool</PackageTags>
+        <Description>Journey .NET global tool for MySQL and MariaDB migrations. Install with: dotnet tool install Journey.Net.MySql</Description>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://ekmungai.github.io/journey-docs/</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/ekmungai/journey</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageIcon>logo.png</PackageIcon>
+        <Copyright>Copyright © Edward Mungai 2025</Copyright>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../LICENSE" Pack="true" PackagePath="" />
+        <None Include="../README.md" Pack="true" PackagePath="" />
+        <None Include="../logo.png" Pack="true" PackagePath="" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="..\Journey.Command\Command.cs" Link="Command.cs" />
+        <Compile Include="..\Journey.Command\Program.cs" Link="Program.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Journey.MySql\Journey.MySql.csproj" />
+    </ItemGroup>
+
+</Project>

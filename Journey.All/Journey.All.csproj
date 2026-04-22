@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\shared\shared.props" />
+
+    <PropertyGroup>
+        <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
+        <PackageId>Ekmungai.Journey.All</PackageId>
+        <Authors>Edward Mungai</Authors>
+        <Title>Journey - All databases</Title>
+        <Company>Microbooks.io</Company>
+        <PackageTags>mysql cassandra dotnet sqlite postgresql journey migration mariadb mssql cockroachdb timescaledb stepwise</PackageTags>
+        <Description>Meta-package that includes Journey support for all databases: PostgreSQL, CockroachDB, TimescaleDB, MySQL, MariaDB, SQLite, SQL Server, and Cassandra.</Description>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://ekmungai.github.io/journey-docs/</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/ekmungai/journey</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageIcon>logo.png</PackageIcon>
+        <Copyright>Copyright © Edward Mungai 2025</Copyright>
+        <!-- No source output — pure dependency aggregator -->
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../LICENSE" Pack="true" PackagePath="" />
+        <None Include="../README.md" Pack="true" PackagePath="" />
+        <None Include="../logo.png" Pack="true" PackagePath="" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Journey.Postgres\Journey.Postgres.csproj" />
+        <ProjectReference Include="..\Journey.MySql\Journey.MySql.csproj" />
+        <ProjectReference Include="..\Journey.Sqlite\Journey.Sqlite.csproj" />
+        <ProjectReference Include="..\Journey.Mssql\Journey.Mssql.csproj" />
+        <ProjectReference Include="..\Journey.Cassandra\Journey.Cassandra.csproj" />
+    </ItemGroup>
+
+</Project>
