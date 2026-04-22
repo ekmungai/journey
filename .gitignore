@@ -46,7 +46,7 @@ versions/*
 *.sql
 publish/*
 .idea/*
-scripts/*
+scripts/*.local.*
 *.user
 *.xml
 settings.local.json
