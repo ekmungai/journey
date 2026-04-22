@@ -1,5 +1,5 @@
 
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Text.RegularExpressions;
 using Journey.Dialects;
 using Journey.Exceptions;

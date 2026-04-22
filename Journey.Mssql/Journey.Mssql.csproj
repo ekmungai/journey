@@ -18,6 +18,7 @@
         <RepositoryType>git</RepositoryType>
         <PackageIcon>logo.png</PackageIcon>
         <Copyright>Copyright © Edward Mungai 2025</Copyright>
+        <NoWarn>$(NoWarn);CA2255</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -33,7 +34,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
+        <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     </ItemGroup>
 
     <ItemGroup>

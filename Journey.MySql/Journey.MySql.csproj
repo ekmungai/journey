@@ -18,6 +18,7 @@
         <RepositoryType>git</RepositoryType>
         <PackageIcon>logo.png</PackageIcon>
         <Copyright>Copyright © Edward Mungai 2025</Copyright>
+        <NoWarn>$(NoWarn);CA2255</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
