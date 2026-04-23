@@ -5,9 +5,11 @@ using CrDb = Journey.Databases.CockroachDb;
 
 namespace Journey.Postgres;
 
-internal static class JourneyPostgresRegistration {
+public static class JourneyPostgresRegistration {
     [ModuleInitializer]
-    internal static void Register() {
+    internal static void AutoRegister() => Register();
+
+    public static void Register() {
         JourneyFacade.RegisterDatabase(
             PgDb.Name,
             async (cs, schema) => await new PgDb().Connect(cs, schema ?? "public"));

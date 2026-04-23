@@ -24,6 +24,9 @@ public class JourneyFacade(
     public static void RegisterDatabase(string name, Func<string, string?, Task<IDatabase>> factory)
         => _registry[name] = factory;
 
+    /// <summary>Returns true if a factory for the given database type name is registered.</summary>
+    public static bool IsRegistered(string name) => _registry.ContainsKey(name);
+
     private void SetLogger(ILogger logger) {
         _migrator.SetLogger(logger);
     }

@@ -3,9 +3,11 @@ using Journey.Databases;
 
 namespace Journey.MySql;
 
-internal static class JourneyMySqlRegistration {
+public static class JourneyMySqlRegistration {
     [ModuleInitializer]
-    internal static void Register() {
+    internal static void AutoRegister() => Register();
+
+    public static void Register() {
         JourneyFacade.RegisterDatabase(
             Mysql.Name,
             async (cs, _) => await new Mysql().Connect(cs));

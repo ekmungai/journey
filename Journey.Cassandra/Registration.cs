@@ -3,9 +3,11 @@ using Journey.Databases;
 
 namespace Journey.Cassandra;
 
-internal static class JourneyCassandraRegistration {
+public static class JourneyCassandraRegistration {
     [ModuleInitializer]
-    internal static void Register() {
+    internal static void AutoRegister() => Register();
+
+    public static void Register() {
         JourneyFacade.RegisterDatabase(
             CassandraDb.Name,
             async (cs, keySpace) => await new CassandraDb().Connect(cs, keySpace ?? "journey"));
