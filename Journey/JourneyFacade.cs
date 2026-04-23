@@ -55,7 +55,7 @@ public class JourneyFacade(
     /// <inheritdoc/>
     public Task Init(bool quiet) => Init(quiet, new FileSystem());
     /// <inheritdoc/>
-    public void Dispose() => _database.Dispose();
+    public void Dispose() => _database?.Dispose();
     /// Get the database associated with the facade
     internal IDatabase GetDatabase() => _database;
 

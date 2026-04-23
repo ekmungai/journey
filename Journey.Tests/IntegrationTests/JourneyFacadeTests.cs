@@ -1,6 +1,7 @@
 using System.IO.Abstractions.TestingHelpers;
 using System.Reflection;
 using Journey.Exceptions;
+using Journey.Sqlite;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.AutoMock;
@@ -164,6 +165,7 @@ public class JourneyFacadeTest : IDisposable {
         ];
 
     public JourneyFacadeTest() {
+        JourneySqliteRegistration.Register();
         _journeyFacade = new JourneyFacade(
             "sqlite",
             "Data Source=:memory:",
