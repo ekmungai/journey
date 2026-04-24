@@ -1,4 +1,4 @@
-namespace Journey.Command;
+namespace Journey.Net;
 
 internal partial class Program {
     static partial void RegisterDatabases();

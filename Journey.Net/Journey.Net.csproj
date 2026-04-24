@@ -42,11 +42,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="..\Journey.Command\Command.cs" Link="Command.cs" />
-        <Compile Include="..\Journey.Command\Program.cs" Link="Program.cs" />
-    </ItemGroup>
-
-    <ItemGroup>
         <ProjectReference Include="..\Journey.Postgres\Journey.Postgres.csproj" />
         <ProjectReference Include="..\Journey.MySql\Journey.MySql.csproj" />
         <ProjectReference Include="..\Journey.Sqlite\Journey.Sqlite.csproj" />

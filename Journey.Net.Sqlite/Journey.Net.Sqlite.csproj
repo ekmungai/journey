@@ -35,8 +35,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="..\Journey.Command\Command.cs" Link="Command.cs" />
-        <Compile Include="..\Journey.Command\Program.cs" Link="Program.cs" />
+        <Compile Include="..\Journey.Net\Command.cs" Link="Command.cs" />
+        <Compile Include="..\Journey.Net\Program.cs" Link="Program.cs" />
     </ItemGroup>
 
     <ItemGroup>
