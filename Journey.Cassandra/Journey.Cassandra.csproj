@@ -35,6 +35,9 @@
 
     <ItemGroup>
         <PackageReference Include="CassandraCSharpDriver" Version="3.22.0" />
+        <!-- Pin patched Newtonsoft.Json; CassandraCSharpDriver 3.22.0 pulls 9.0.1 transitively,
+             which is vulnerable to CVE-2024-21907 (DoS via deeply nested JSON). -->
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     </ItemGroup>
 
     <ItemGroup>
