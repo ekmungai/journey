@@ -5,7 +5,7 @@
 
 Write-Host "Building standalone Journey CLI executables..." -ForegroundColor Green
 
-$version = "1.1.6"
+$version = "1.2.0"
 
 $outputDir = "publish"
 if (Test-Path $outputDir) {
@@ -29,7 +29,7 @@ foreach ($variant in $variants) {
     foreach ($platform in $platforms) {
         $dir = "$outputDir/$($variant.Name)-$platform"
         Write-Host "  [$platform]" -ForegroundColor Yellow
-        dotnet publish $variant.Project -c Release -r $platform -f net9.0 -o $dir --self-contained true -p:PublishSingleFile=true -p:Version=$version --nologo -v q
+        dotnet publish $variant.Project -c Release -r $platform -f net10.0 -o $dir --self-contained true -p:PublishSingleFile=true -p:Version=$version --nologo -v q
 
         if ($platform -like "win-*") {
             $archive = "$outputDir/$($variant.Name)_${version}_$platform.zip"

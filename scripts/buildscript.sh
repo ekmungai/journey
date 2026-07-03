@@ -5,7 +5,7 @@
 
 echo "Building standalone Journey CLI executables..."
 
-VERSION="1.1.6"
+VERSION="1.2.0"
 OUTPUT_DIR="publish"
 
 if [ -d "$OUTPUT_DIR" ]; then
@@ -31,7 +31,7 @@ for NAME in "${!VARIANTS[@]}"; do
     for PLATFORM in "${PLATFORMS[@]}"; do
         DIR="$OUTPUT_DIR/$NAME-$PLATFORM"
         echo "  [$PLATFORM]"
-        dotnet publish "$PROJECT" -c Release -r "$PLATFORM" -f net9.0 -o "$DIR" \
+        dotnet publish "$PROJECT" -c Release -r "$PLATFORM" -f net10.0 -o "$DIR" \
             --self-contained true -p:PublishSingleFile=true -p:Version="$VERSION" --nologo -v q
 
         case "$PLATFORM" in
