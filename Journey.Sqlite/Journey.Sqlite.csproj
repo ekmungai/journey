@@ -34,7 +34,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="System.Data.Sqlite" Version="1.0.119" />
+        <!-- Use the lean Core package (ADO.NET provider only). The full System.Data.SQLite
+             meta-package drags in EntityFramework 6, which transitively pulls vulnerable
+             System.Data.SqlClient (CVE-2024-0056) and System.Drawing.Common (CVE-2021-24112). -->
+        <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
     </ItemGroup>
 
     <ItemGroup>
