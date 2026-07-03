@@ -2,7 +2,7 @@
     <Import Project="..\shared\shared.props" />
 
     <PropertyGroup>
-        <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
+        <TargetFrameworks>net10.0;net9.0;net8.0</TargetFrameworks>
         <PackageId>Ekmungai.Journey.All</PackageId>
         <Authors>Edward Mungai</Authors>
         <Title>Journey - All databases</Title>

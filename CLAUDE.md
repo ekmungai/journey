@@ -35,7 +35,7 @@ dotnet test Journey.Tests/Journey.Tests.csproj
 
 The solution contains 4 projects:
 
-- **Journey** - Core library (targets net9.0 and net8.0)
+- **Journey** - Core library (targets net10.0, net9.0, and net8.0)
 - **Journey.Command** - Standalone CLI executable
 - **Journey.Net** - .NET global tool
 - **Journey.Tests** - xUnit test suite with Testcontainers for integration tests
