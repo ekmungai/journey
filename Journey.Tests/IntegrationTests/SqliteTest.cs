@@ -13,6 +13,12 @@ public class SqliteTest {
     }
 
     [Fact]
+    public async Task TestConnectFileUriWithQueryParams() {
+        Assert.IsType<SqliteDb>(await _database.Connect("file::memory:?cache=shared"));
+        await _database.Execute("CREATE TABLE probe (id INTEGER);");
+    }
+
+    [Fact]
     public async Task TestGetCurrentVersionUninitialized() {
         await _database.Connect(_connectionString);
         Assert.Equal(-1, await _database.CurrentVersion());

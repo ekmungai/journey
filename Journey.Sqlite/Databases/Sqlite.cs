@@ -16,14 +16,15 @@ internal record Sqlite : IDatabase {
         if (!connectionString.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
             return connectionString;
 
+        // SQLite URI parameters (e.g. ?cache=shared) are file open flags rather than ADO.NET
+        // settings, so hand the whole uri to SQLite itself instead of translating them.
+        if (connectionString.Contains('?')) return $"FullUri={connectionString}";
+
         if (connectionString.StartsWith("file::memory:", StringComparison.OrdinalIgnoreCase))
             return "Data Source=:memory:";
 
         // Strip "file:" prefix and optional authority ("//host"), keeping the path
         var path = Regex.Replace(connectionString, @"(?i)^file:(//[^/]*)?", "");
-        // Drop any SQLite URI query parameters (e.g. ?cache=shared)
-        var queryIndex = path.IndexOf('?');
-        if (queryIndex >= 0) path = path[..queryIndex];
 
         return $"Data Source={path}";
     }

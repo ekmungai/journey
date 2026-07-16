@@ -1,3 +1,4 @@
+using Journey.Exceptions;
 using PgDb = Journey.Databases.Postgres;
 
 namespace Journey.Tests.UnitTests;
@@ -64,6 +65,40 @@ public class PostgresConnectionStringTest {
 
         Assert.Contains("Host=db.example.com", result, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Database=production", result, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void NormalizeConnectionString_UriWithQueryParams_AppliesParams() {
+        var result = PgDb.NormalizeConnectionString(
+            "postgres://user:pass@localhost/mydb?Command Timeout=90&Pooling=false");
+
+        Assert.Contains("Command Timeout=90", result, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Pooling=False", result, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Database=mydb", result, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void NormalizeConnectionString_UriWithLibpqParams_TranslatesToNpgsqlKeywords() {
+        var result = PgDb.NormalizeConnectionString(
+            "postgres://user:pass@localhost/mydb?sslmode=Require&connect_timeout=30&application_name=journey");
+
+        Assert.Contains("SSL Mode=Require", result, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Timeout=30", result, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Application Name=journey", result, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void NormalizeConnectionString_UriWithEscapedParamValue_DecodesCorrectly() {
+        var result = PgDb.NormalizeConnectionString(
+            "postgres://user:pass@localhost/mydb?application_name=my%20app");
+
+        Assert.Contains("Application Name=\"my app\"", result, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void NormalizeConnectionString_UriWithUnknownParam_Throws() {
+        Assert.Throws<InvalidConnectionStringParameterException>(() =>
+            PgDb.NormalizeConnectionString("postgres://user:pass@localhost/mydb?not_a_real_option=1"));
     }
 
     [Theory]
