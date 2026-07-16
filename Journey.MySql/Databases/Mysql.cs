@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using Journey.Dialects;
 using Journey.Exceptions;
+using Journey.Helpers;
 using Journey.Interfaces;
 using Journey.Models;
 using MySqlConnector;
@@ -14,6 +15,14 @@ internal record Mysql : IDatabase {
     private readonly SqlDialect _dbDialect = new MysqlDialect();
     private string _connectionString = null!;
     private const string DatabaseNameRegex = "(?i)(database|db)=([^;]+)";
+
+    // Uri spellings of parameters MySqlConnector knows by another keyword.
+    private static readonly Dictionary<string, string> ParameterAliases = new(StringComparer.OrdinalIgnoreCase) {
+        ["dbname"] = "Database",
+        ["user"] = "User ID",
+        ["connect_timeout"] = "Connection Timeout",
+        ["charset"] = "Character Set",
+    };
 
     internal static string NormalizeConnectionString(string connectionString) {
         if (!connectionString.StartsWith("mysql://", StringComparison.OrdinalIgnoreCase) &&
@@ -33,6 +42,7 @@ internal record Mysql : IDatabase {
             builder.UserID = Uri.UnescapeDataString(userInfo[0]);
         if (userInfo.Length > 1)
             builder.Password = Uri.UnescapeDataString(userInfo[1]);
+        ConnectionStringUri.ApplyQueryParameters(uri, builder, ParameterAliases);
         return builder.ConnectionString;
     }
 

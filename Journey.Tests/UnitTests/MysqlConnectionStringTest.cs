@@ -1,4 +1,5 @@
 using Journey.Databases;
+using Journey.Exceptions;
 
 namespace Journey.Tests.UnitTests;
 
@@ -62,6 +63,31 @@ public class MysqlConnectionStringTest {
         var result = Mysql.NormalizeConnectionString(kvString);
 
         Assert.Equal(kvString, result);
+    }
+
+    [Fact]
+    public void NormalizeConnectionString_UriWithQueryParams_AppliesParams() {
+        var result = Mysql.NormalizeConnectionString(
+            "mysql://user:pass@localhost/mydb?Default Command Timeout=90&Pooling=false");
+
+        Assert.Contains("Default Command Timeout=90", result, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Pooling=False", result, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Database=mydb", result, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void NormalizeConnectionString_UriWithAliasedParams_TranslatesToConnectorKeywords() {
+        var result = Mysql.NormalizeConnectionString(
+            "mysql://user:pass@localhost/mydb?connect_timeout=30&charset=utf8mb4");
+
+        Assert.Contains("Connection Timeout=30", result, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Character Set=utf8mb4", result, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void NormalizeConnectionString_UriWithUnknownParam_Throws() {
+        Assert.Throws<InvalidConnectionStringParameterException>(() =>
+            Mysql.NormalizeConnectionString("mysql://user:pass@localhost/mydb?not_a_real_option=1"));
     }
 
     [Fact]

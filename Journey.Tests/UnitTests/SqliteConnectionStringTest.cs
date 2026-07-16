@@ -40,10 +40,17 @@ public class SqliteConnectionStringTest {
     }
 
     [Fact]
-    public void NormalizeConnectionString_FileUriWithQueryParams_StripsQueryParams() {
+    public void NormalizeConnectionString_FileUriWithQueryParams_PassesUriToSqlite() {
         var result = SqliteDb.NormalizeConnectionString("file:mydb.sqlite?cache=shared&mode=rwc");
 
-        Assert.Equal("Data Source=mydb.sqlite", result);
+        Assert.Equal("FullUri=file:mydb.sqlite?cache=shared&mode=rwc", result);
+    }
+
+    [Fact]
+    public void NormalizeConnectionString_InMemoryUriWithQueryParams_PassesUriToSqlite() {
+        var result = SqliteDb.NormalizeConnectionString("file::memory:?cache=shared");
+
+        Assert.Equal("FullUri=file::memory:?cache=shared", result);
     }
 
     [Fact]

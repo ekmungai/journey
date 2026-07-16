@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Journey.Dialects;
 using Journey.Exceptions;
+using Journey.Helpers;
 using Journey.Interfaces;
 using Journey.Models;
 using Npgsql;
@@ -14,6 +15,19 @@ internal record Postgres : IDatabase {
     private string _connectionString = null!;
     private const string DatabaseNameRegex = "(?i)(database|db)=([^;]+)";
     private string _schema = "public";
+
+    // Libpq spellings of parameters Npgsql knows by another keyword.
+    private static readonly Dictionary<string, string> ParameterAliases = new(StringComparer.OrdinalIgnoreCase) {
+        ["dbname"] = "Database",
+        ["user"] = "Username",
+        ["connect_timeout"] = "Timeout",
+        ["application_name"] = "Application Name",
+        ["sslmode"] = "SSL Mode",
+        ["sslcert"] = "SSL Certificate",
+        ["sslkey"] = "SSL Key",
+        ["sslpassword"] = "SSL Password",
+        ["sslrootcert"] = "Root Certificate",
+    };
 
     internal static string NormalizeConnectionString(string connectionString) {
         if (!connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) &&
@@ -33,6 +47,7 @@ internal record Postgres : IDatabase {
             builder.Username = Uri.UnescapeDataString(userInfo[0]);
         if (userInfo.Length > 1)
             builder.Password = Uri.UnescapeDataString(userInfo[1]);
+        ConnectionStringUri.ApplyQueryParameters(uri, builder, ParameterAliases);
         return builder.ConnectionString;
     }
 

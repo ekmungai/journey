@@ -1,3 +1,4 @@
+using Journey.Exceptions;
 using MssqlDb = Journey.Databases.Mssql;
 
 namespace Journey.Tests.UnitTests;
@@ -51,6 +52,31 @@ public class MssqlConnectionStringTest {
         var result = MssqlDb.NormalizeConnectionString(kvString);
 
         Assert.Equal(kvString, result);
+    }
+
+    [Fact]
+    public void NormalizeConnectionString_UriWithQueryParams_AppliesParams() {
+        var result = MssqlDb.NormalizeConnectionString(
+            "sqlserver://user:pass@localhost/mydb?Command Timeout=90&Encrypt=false");
+
+        Assert.Contains("Command Timeout=90", result, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Encrypt=False", result, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Initial Catalog=mydb", result, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void NormalizeConnectionString_UriWithAliasedParams_TranslatesToSqlClientKeywords() {
+        var result = MssqlDb.NormalizeConnectionString(
+            "sqlserver://user:pass@localhost/mydb?connect_timeout=30&application_name=journey");
+
+        Assert.Contains("Connect Timeout=30", result, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Application Name=journey", result, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void NormalizeConnectionString_UriWithUnknownParam_Throws() {
+        Assert.Throws<InvalidConnectionStringParameterException>(() =>
+            MssqlDb.NormalizeConnectionString("sqlserver://user:pass@localhost/mydb?not_a_real_option=1"));
     }
 
     [Fact]

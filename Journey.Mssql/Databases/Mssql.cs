@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using System.Text.RegularExpressions;
 using Journey.Dialects;
 using Journey.Exceptions;
+using Journey.Helpers;
 using Journey.Interfaces;
 using Journey.Models;
 
@@ -14,6 +15,14 @@ internal record Mssql : IDatabase {
     private readonly SqlDialect _dbDialect = new MssqlDialect();
     private string _connectionString = null!;
     private const string DatabaseNameRegex = "(?i)(database|initial catalog)=([^;]+)";
+
+    // Uri spellings of parameters SqlClient knows by another keyword.
+    private static readonly Dictionary<string, string> ParameterAliases = new(StringComparer.OrdinalIgnoreCase) {
+        ["dbname"] = "Initial Catalog",
+        ["user"] = "User ID",
+        ["connect_timeout"] = "Connect Timeout",
+        ["application_name"] = "Application Name",
+    };
 
     internal static string NormalizeConnectionString(string connectionString) {
         if (!connectionString.StartsWith("sqlserver://", StringComparison.OrdinalIgnoreCase) &&
@@ -31,6 +40,7 @@ internal record Mssql : IDatabase {
             builder.UserID = Uri.UnescapeDataString(userInfo[0]);
         if (userInfo.Length > 1)
             builder.Password = Uri.UnescapeDataString(userInfo[1]);
+        ConnectionStringUri.ApplyQueryParameters(uri, builder, ParameterAliases);
         return builder.ConnectionString;
     }
 
