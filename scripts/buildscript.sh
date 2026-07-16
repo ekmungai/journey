@@ -5,7 +5,7 @@
 
 echo "Building standalone Journey CLI executables..."
 
-VERSION="1.2.0"
+VERSION="1.3.0"
 OUTPUT_DIR="publish"
 
 if [ -d "$OUTPUT_DIR" ]; then
