@@ -79,3 +79,83 @@ jobs:
       # Push the packages
       - name: NuGet push
         run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+
+  # Build the standalone CLI executables and attach them to the release, so that the
+  # download link in the README keeps pointing at the version that was just published.
+  standalone-assets:
+    needs: build-and-publish  # do not attach binaries for a release whose tests failed
+    permissions:
+      contents: write  # needed to upload the archives to the release
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [win-x64, win-arm64, osx-x64, osx-arm64, linux-x64, linux-arm64]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build the standalone executables
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          # The archives are named for the release, so that they cannot drift from the tag.
+          version="${TAG#v}"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          for variant in \
+            "journey:Journey.Command" \
+            "journey-postgres:Journey.Command.Postgres" \
+            "journey-mysql:Journey.Command.MySql" \
+            "journey-sqlite:Journey.Command.Sqlite" \
+            "journey-mssql:Journey.Command.Mssql" \
+            "journey-cassandra:Journey.Command.Cassandra"
+          do
+            name="${variant%%:*}"
+            project="${variant#*:}"
+            echo "::group::$name ($PLATFORM)"
+            dotnet publish "$project/$project.csproj" \
+              --configuration Release \
+              --runtime "$PLATFORM" \
+              --framework net10.0 \
+              --self-contained true \
+              -p:PublishSingleFile=true \
+              -p:Version="$version" \
+              --output "publish/$name-$PLATFORM" \
+              --nologo
+            echo "::endgroup::"
+          done
+
+      - name: Archive the standalone executables
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          set -euo pipefail
+          cd publish
+          for dir in *-"$PLATFORM"; do
+            name="${dir%-$PLATFORM}"
+            case "$PLATFORM" in
+              win-*) zip -qr "${name}_${VERSION}_${PLATFORM}.zip" "$dir" ;;
+              *)     tar -czf "${name}_${VERSION}_${PLATFORM}.tgz" "$dir" ;;
+            esac
+          done
+          ls -lh ./*.zip ./*.tgz 2>/dev/null || true
+
+      - name: Attach the archives to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          # A platform produces either zips or tarballs, never both, so let the
+          # pattern that matches nothing expand to nothing rather than to itself.
+          shopt -s nullglob
+          archives=(publish/*.zip publish/*.tgz)
+          gh release upload "$TAG" "${archives[@]}" --clobber
