@@ -1,6 +1,7 @@
 using System.Data.SQLite;
 using System.Text.RegularExpressions;
 using Journey.Dialects;
+using Journey.Helpers;
 using Journey.Interfaces;
 using Journey.Models;
 
@@ -47,6 +48,10 @@ internal record Sqlite : IDatabase {
         command.CommandText = query;
         await command.ExecuteNonQueryAsync();
     }
+
+    /// <inheritdoc/>
+    public async Task ExecuteAll(IReadOnlyList<string> queries, Action<string>? onQuery = null)
+        => await BatchExecutor.Execute(_connection, queries, _dialect, onQuery: onQuery);
 
     /// <inheritdoc/>
     public async Task<int> CurrentVersion() {

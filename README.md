@@ -18,6 +18,8 @@ By allowing them to up and downgrade their local database to any step in the mig
 ### In Built Atomicity
 Each step is prepared in a standard format that ensures that both migrations and rollbacks are atomic. To assist with this, the tool provides a scaffold mode that produces a template with all the required sections prefilled and only awaiting the queries for making the actual changes to the database. 
 
+Every transaction declared in a version file is applied as one, on a single connection: if any of its queries fails, none of them are kept and the database is left exactly as it was before the step was attempted. Two caveats are worth knowing about: MySql and MariaDb commit implicitly on DDL, so a transaction that both changes the schema and moves data cannot be rolled back in full there, and Cassandra has no multi statement transactions at all, so its queries are applied one at a time.
+
 Each version file is validated before execution which when combined with a dry run mode which both applies the migration and rolls it back immediately, the tool provides a layer of safety however limited against irrecoverable damage to the database. 
 
 ## Supported Databases
@@ -117,6 +119,9 @@ If you want to view the metatdata of the migrations applied to the database up t
 ```bash
 journey history -p "path\to\versions-dir" -d sqlite -c "Data Source=journal.db"
 ```
+
+### Testing your migrations
+Journey does not hand a version file to the server as it is written: it splits the file into statements, points the bookkeeping table at the schema being migrated, and runs each declared transaction on a single connection of its own. A test that executes the body of a version file directly therefore proves that your SQL is valid, but not that Journey can apply it. Point your tests at `JourneyFacade` (or the CLI) instead, so that what they exercise is what will run in production.
 
 ## Documentation
 You can read extensive documentation about Journey [here](https://ekmungai.github.io/journey-docs/).

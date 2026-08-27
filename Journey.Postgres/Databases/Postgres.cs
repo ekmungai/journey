@@ -67,19 +67,22 @@ internal record Postgres : IDatabase {
     public async Task Execute(string query) {
         await using var dataSource = NpgsqlDataSource.Create(_connectionString);
         var command = dataSource.CreateCommand();
-        command.CommandText = _schema != ""
-            ? query.Replace("versions", _schema + ".versions")
-            : query;
+        command.CommandText = Qualify(query);
         await command.ExecuteNonQueryAsync();
+    }
+
+    /// <inheritdoc/>
+    public async Task ExecuteAll(IReadOnlyList<string> queries, Action<string>? onQuery = null) {
+        await using var dataSource = NpgsqlDataSource.Create(_connectionString);
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await BatchExecutor.Execute(connection, queries, _dialect, Qualify, onQuery);
     }
 
     /// <inheritdoc/>
     public async Task<int> CurrentVersion() {
         await using var dataSource = NpgsqlDataSource.Create(_connectionString);
         var command = dataSource.CreateCommand();
-        command.CommandText = _schema != ""
-            ? _dialect.CurrentVersionQuery().Replace("versions", _schema + ".versions")
-            : _dialect.CurrentVersionQuery();
+        command.CommandText = Qualify(_dialect.CurrentVersionQuery());
         try {
             var result = await command.ExecuteScalarAsync();
             return int.Parse(result!.ToString() ?? "");
@@ -93,10 +96,7 @@ internal record Postgres : IDatabase {
         var history = new List<Itinerary>();
         await using var dataSource = NpgsqlDataSource.Create(_connectionString);
         var command = dataSource.CreateCommand();
-        var query = _dialect.HistoryQuery().Replace("[entries]", entries.ToString());
-        command.CommandText = _schema != ""
-            ? query.Replace("versions", _schema + ".versions")
-            : query;
+        command.CommandText = Qualify(_dialect.HistoryQuery().Replace("[entries]", entries.ToString()));
         var reader = await command.ExecuteReaderAsync();
         while (reader.Read()) {
             history.Add(new Itinerary(
@@ -143,6 +143,10 @@ internal record Postgres : IDatabase {
     public void Dispose() {
         //
     }
+
+    /// Points the bookkeeping table of the query at the schema the migration is being applied to.
+    private string Qualify(string query)
+        => SchemaQualifier.Qualify(query, _schema, _dialect.Comment());
 
     private string GetDatabaseName() {
         var name = Regex.Match(_connectionString, DatabaseNameRegex).Groups[2].Value;

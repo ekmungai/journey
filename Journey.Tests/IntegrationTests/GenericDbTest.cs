@@ -73,6 +73,29 @@ public abstract class GenericDbTests<T>(T container) : IClassFixture<T> where T 
             h => h is { Version: "2", Description: "Testing version insert number two", RunBy: "they", Author: "them" });
     }
 
+    [Fact]
+    public async Task TestExecuteAllRollsBackAFailedTransaction() {
+        // The queries of one migration run inside one real transaction, so a statement that fails
+        // part of the way through must take the ones before it down with it.
+        if (!container.IsTransactional()) return;
+
+        await _database.Connect(container.GetConnectionString(), container.GetSchema()!);
+        await ClearVersionsTable();
+        await SetupVersionsTable();
+
+        var dialect = _database.GetDialect();
+        List<string> queries = [
+            dialect.StartTransaction(),
+            container.GetVersionEntries()[0],
+            container.GetInValidQuery(),
+            dialect.EndTransaction()[0]
+        ];
+
+        await Assert.ThrowsAnyAsync<Exception>(async () => await _database.ExecuteAll(queries));
+
+        Assert.Equal(0, await _database.CurrentVersion());
+    }
+
     private async Task SetupVersionsTable() => await _database.Execute(_database.GetDialect().MigrateVersionsTable());
     private async Task ClearVersionsTable() {
         try {

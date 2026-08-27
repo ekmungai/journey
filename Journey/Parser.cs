@@ -1,5 +1,6 @@
 using System.Text;
 using Journey.Exceptions;
+using Journey.Helpers;
 using Journey.Interfaces;
 using Journey.Models;
 
@@ -18,6 +19,8 @@ internal class Parser : IParser {
         { Rollback, [] }
     };
     private readonly IDialect _dialect;
+    private readonly SqlScanner _scanner;
+    private bool _terminated;
     private readonly Scaffold _scaffold;
     private readonly string[] _sectionStart;
     private readonly string[] _sectionEnd;
@@ -27,6 +30,7 @@ internal class Parser : IParser {
     public Parser(int version, string[] content, IDialect dialect) {
         _version = version; ;
         _dialect = dialect;
+        _scanner = new SqlScanner(dialect.Comment());
         _scaffold = new Scaffold(dialect, null);
         var firstSectionIndex = GetFirstSectionIndex(content);
         _fileContents = new Queue<string>(content
@@ -121,7 +125,7 @@ internal class Parser : IParser {
             throw new InvalidFormatException(_version, line);
         }
 
-        if (!line.Contains(_dialect.Terminator())) {
+        if (!_terminated) {
             return ParseBlock(line, queries, section);
         }
 
@@ -140,7 +144,7 @@ internal class Parser : IParser {
             _block.AppendLine(firstLine);
         }
         var line = GetNextLine(blockContents);
-        if (line.Contains(_dialect.Terminator())) {
+        if (_terminated) {
             _block.Append(line);
             section.Add(_block.ToString());
             _block.Clear();
@@ -177,15 +181,24 @@ internal class Parser : IParser {
     }
     private string GetNextLine(Queue<string> lines) {
         try {
-            while (IsComment(lines.Peek())) {
+            // Only skip comments while the scanner is in code: a line that begins with the comment
+            // symbol is part of the text when a string literal or block comment is still open. The
+            // marker that ends a section is a comment too, and swallowing it would run the section
+            // together with the one after it instead of reporting the file as malformed.
+            while (_scanner.InCode && IsComment(lines.Peek()) && !_sectionEnd.Contains(lines.Peek())) {
                 lines.Dequeue();
             }
-            return lines.Dequeue();
+            var line = lines.Dequeue();
+            // A terminator inside a comment or a string literal does not end the statement, so the
+            // scanner, and not the line itself, decides where a query ends.
+            _terminated = _scanner.ContainsTerminator(line, _dialect.Terminator());
+            return line;
         } catch (InvalidOperationException) {
             throw new OpenTransactionException(_version);
         }
     }
-    private bool IsComment(string line) => line[..2] == _dialect.Comment();
+    private bool IsComment(string line)
+        => line.TrimStart().StartsWith(_dialect.Comment(), StringComparison.Ordinal);
 }
 
 #pragma warning restore CS8603 // Possible null reference return.

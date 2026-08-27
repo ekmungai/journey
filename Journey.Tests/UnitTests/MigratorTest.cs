@@ -13,6 +13,9 @@ public class MigratorTest : IDisposable {
     private readonly AutoMocker _mocker = new(MockBehavior.Loose); // testing strings is such a pain >_<
 
     public MigratorTest() {
+        // Migrations run through ExecuteAll, whose default implementation hands the queries to
+        // Execute one at a time. Calling the base lets the tests keep asserting on the queries.
+        _mocker.GetMock<IDatabase>().CallBase = true;
         _migrator = new Migrator(_mocker.GetMock<IFileManager>().Object, _mocker.GetMock<IDatabase>().Object, true);
     }
 
@@ -28,6 +31,8 @@ public class MigratorTest : IDisposable {
             -- | others as you need.                                            | 
             -- | 3. The two sections and all transactions must be properly      |
             -- | closed.                                                        |
+            -- | 4. Every transaction is applied as one, on a single connection.|
+            -- |    If any of its queries fails, none of them are kept.         |
             -- ******************************************************************
             """,
             "-- start migration",

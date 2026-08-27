@@ -8,6 +8,7 @@ public class CassandraFixture : DatabaseFixture, IAsyncLifetime {
         .Build();
 
     public override IDatabase GetDatabase() => new CassandraDb();
+    public override bool IsTransactional() => false;
     public override string GetValidQuery() => $"CREATE TABLE {GetSchema()}.test (column1 text PRIMARY KEY)";
     public override string GetInValidQuery() => $"CREATE TABLE {GetSchema()}.test (column1 text)";
     public override Task InitializeAsync() => _container.StartAsync();
