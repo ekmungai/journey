@@ -1,6 +1,7 @@
 
 using Cassandra;
 using Journey.Dialects;
+using Journey.Helpers;
 using Journey.Exceptions;
 using Journey.Interfaces;
 using Journey.Models;
@@ -38,7 +39,7 @@ internal record CassandraDb : IDatabase {
     }
     /// <inheritdoc/>
     public async Task<int> CurrentVersion() {
-        var statement = new SimpleStatement(_dialect.CurrentVersionQuery().Replace("versions", _keySpace + ".versions"));
+        var statement = new SimpleStatement(SchemaQualifier.Qualify(_dialect.CurrentVersionQuery(), _keySpace));
         try {
             var rowSet = await _session.ExecuteAsync(statement);
             var version = rowSet.GetRows().FirstOrDefault()!.GetValue<long>("version");
@@ -50,9 +51,8 @@ internal record CassandraDb : IDatabase {
     /// <inheritdoc/>
     public async Task<List<Itinerary>> GetItinerary(int entries) {
         var history = new List<Itinerary>();
-        var statement = new SimpleStatement(_dialect.HistoryQuery()
-            .Replace("versions", _keySpace + ".versions")
-            .Replace("[entries]", entries.ToString()));
+        var statement = new SimpleStatement(SchemaQualifier.Qualify(
+            _dialect.HistoryQuery().Replace("[entries]", entries.ToString()), _keySpace));
         var result = await _session.ExecuteAsync(statement);
         foreach (var row in result) {
             history.Add(new Itinerary(

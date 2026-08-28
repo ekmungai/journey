@@ -8,11 +8,6 @@ public abstract record DatabaseAction(IDatabase Database, Action<string> Logger)
 
     /// Executes the queries of the action on the database to apply it
     public async Task Execute(bool verbose) {
-        foreach (var query in Queries) {
-            if (verbose) {
-                Logger($"> {query}");
-            }
-            await Database.Execute(query.Trim());
-        }
+        await Database.ExecuteAll(Queries, verbose ? query => Logger($"> {query}") : null);
     }
 }

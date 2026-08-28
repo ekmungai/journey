@@ -7,6 +7,9 @@ public abstract class DatabaseFixture : IAsyncLifetime {
 
     public abstract Task DisposeAsync();
     public abstract string GetConnectionString();
+    /// Whether a failed statement rolls back the ones before it in the same transaction. Cassandra
+    /// has no multi statement transactions, and mysql commits implicitly on ddl.
+    public virtual bool IsTransactional() => true;
     public virtual string GetValidQuery() => "CREATE TABLE test (column1 varchar(100) NOT NULL)";
     public virtual string GetInValidQuery() => "CREATE TABLES test (column1 varchar(100) NOT NULL)";
     public abstract Type GetDatabaseException();

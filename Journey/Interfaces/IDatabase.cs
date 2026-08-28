@@ -27,6 +27,21 @@ public interface IDatabase : IDisposable {
     /// <returns cref="Task"></returns>
     public Task Execute(string query);
     /// <summary>
+    /// Executes all the queries of a single migration or rollback, honouring the transactions
+    /// declared in the migration file so that a failure part of the way through leaves nothing of
+    /// the migration behind.
+    /// </summary>
+    /// <param name="queries">The queries to execute, including the transaction delimiters.</param>
+    /// <param name="onQuery">Called with each query before it is executed, if given.</param>
+    /// <returns cref="Task"></returns>
+    public async Task ExecuteAll(IReadOnlyList<string> queries, Action<string>? onQuery = null) {
+        // Databases without multi statement transactions, such as Cassandra, keep this fallback.
+        foreach (var query in queries) {
+            onQuery?.Invoke(query);
+            await Execute(query.Trim());
+        }
+    }
+    /// <summary>
     /// Gets the current version of the Database.
     /// </summary>
     /// <returns cref="Task"></returns>

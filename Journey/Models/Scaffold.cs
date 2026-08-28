@@ -17,6 +17,8 @@ internal record Scaffold {
                                    -- | others as you need.                                            | 
                                    -- | 3. The two sections and all transactions must be properly      |
                                    -- | closed.                                                        |
+                                   -- | 4. Every transaction is applied as one, on a single connection.|
+                                   -- |    If any of its queries fails, none of them are kept.         |
                                    -- ******************************************************************
                                    """;
     private const string StartMigration = "start migration";

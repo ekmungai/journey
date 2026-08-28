@@ -67,6 +67,13 @@ internal record Mysql : IDatabase {
     }
 
     /// <inheritdoc/>
+    public async Task ExecuteAll(IReadOnlyList<string> queries, Action<string>? onQuery = null) {
+        await using var connection = new MySqlConnection(_connectionString);
+        await connection.OpenAsync();
+        await BatchExecutor.Execute(connection, queries, _dbDialect, onQuery: onQuery);
+    }
+
+    /// <inheritdoc/>
     public async Task<int> CurrentVersion() {
         await using var connection = new MySqlConnection(_connectionString);
         await connection.OpenAsync();

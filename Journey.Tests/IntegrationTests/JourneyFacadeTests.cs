@@ -528,8 +528,8 @@ public class JourneyFacadeTest : IDisposable {
 
         var history = await _journeyFacade.History(10);
         Assert.Contains($"{Environment.NewLine}Version | RunTime \t\t\t| Description \t\t\t| RunBy \t| Author", history);
-        Assert.Contains($"1 \t| {now} \t| Testing version insert \t| me \t| you", history);
-        Assert.Contains($"2 \t| {now} \t| Testing version insert number two \t| they \t| them", history);
+        AssertEntry(history, "1 \t| {0} \t| Testing version insert \t| me \t| you", now);
+        AssertEntry(history, "2 \t| {0} \t| Testing version insert number two \t| they \t| them", now);
     }
 
     [Fact]
@@ -544,8 +544,8 @@ public class JourneyFacadeTest : IDisposable {
 
         var history = await _journeyFacade.History(1);
         Assert.Contains($"{Environment.NewLine}Version | RunTime \t\t\t| Description \t\t\t| RunBy \t| Author", history);
-        Assert.Contains($"1 \t| {now} \t| Testing version insert \t| me \t| you", history);
-        Assert.DoesNotContain($"2 \t| {now} \t| Testing version insert number two \t| they \t| them", history);
+        AssertEntry(history, "1 \t| {0} \t| Testing version insert \t| me \t| you", now);
+        Assert.DoesNotContain("Testing version insert number two", history);
     }
 
     [Fact]
@@ -666,6 +666,69 @@ public class JourneyFacadeTest : IDisposable {
         await AssertDatabaseVersion(21);
     }
 
+    [Fact]
+    public async Task TestFailedMigrationLeavesNothingBehind() {
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(
+            """
+            -- start migration
+            BEGIN;
+            CREATE TABLE charts (id TEXT PRIMARY KEY);
+            CREATE TABLES broken (id TEXT PRIMARY KEY);
+            INSERT INTO versions (version, description, run_by, author) VALUES (1, 'broken', 'me', 'you');
+            END;
+            -- end migration
+            -- start rollback
+            BEGIN;
+            DROP TABLE charts;
+            DELETE FROM versions WHERE version = 1;
+            END;
+            -- end rollback
+            """));
+        await _journeyFacade.Init(true, fileSystem);
+
+        await Assert.ThrowsAnyAsync<Exception>(async () => await _journeyFacade.Migrate(1, false));
+
+        await AssertDatabaseVersion(0);
+        // The table created before the failing statement was part of the same transaction, so it
+        // must have gone with it rather than leaving the schema half migrated.
+        await Assert.ThrowsAnyAsync<Exception>(
+            async () => await _journeyFacade.GetDatabase().Execute("SELECT id FROM charts;"));
+    }
+
+    [Fact]
+    public async Task TestMigrationWithSemicolonsInCommentsAndLiterals() {
+        var fileSystem = new MockFileSystem();
+        fileSystem.AddFile(Path.Combine(_versionsDir, "0.sql"), new MockFileData(_versions[0]));
+        fileSystem.AddFile(Path.Combine(_versionsDir, "1.sql"), new MockFileData(
+            """
+            -- start migration
+            BEGIN;
+            CREATE TABLE chart_definition_versions (
+                id TEXT PRIMARY KEY,
+                kind TEXT NOT NULL,   -- 'chart' | 'tile'; never changes for a slug
+                -- one row per revision; rows are never updated
+                slug TEXT NOT NULL
+            );
+            INSERT INTO versions (version, description, run_by, author) VALUES (1, 'charts; and tiles', 'me', 'you');
+            END;
+            -- end migration
+            -- start rollback
+            BEGIN;
+            DROP TABLE chart_definition_versions;
+            DELETE FROM versions WHERE version = 1;
+            END;
+            -- end rollback
+            """));
+        await _journeyFacade.Init(true, fileSystem);
+
+        await _journeyFacade.Migrate(1, false);
+
+        await AssertDatabaseVersion(1);
+        await _journeyFacade.GetDatabase().Execute("SELECT slug FROM chart_definition_versions;");
+    }
+
     private static string SimpleMigration(int version) =>
         $"""
         -- start migration
@@ -679,6 +742,13 @@ public class JourneyFacadeTest : IDisposable {
         END;
         -- end rollback
         """;
+
+    /// The run time of an entry is the database clock at the moment the migration ran, which can
+    /// fall a moment after the test read its own, so accept the seconds around it.
+    private static void AssertEntry(string history, string entry, DateTimeOffset around) {
+        DateTimeOffset[] candidates = [around.AddSeconds(-1), around, around.AddSeconds(1)];
+        Assert.Contains(candidates, runTime => history.Contains(string.Format(entry, runTime)));
+    }
 
     private async Task AssertDatabaseVersion(int version) {
         var db = _journeyFacade.GetDatabase();

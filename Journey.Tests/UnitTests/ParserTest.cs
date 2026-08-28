@@ -457,4 +457,154 @@ public class ParserTest {
         var ex = Assert.Throws<InvalidFormatException>(parser.ParseFile);
         Assert.Equal("The migration file for version 0 is malformed at: BEGIN;", ex.Message);
     }
+
+    [Fact]
+    public void TestParseSemicolonInTrailingComment() {
+        string[] content = [
+            """
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
+            """, "",
+            "-- start migration", "",
+            "BEGIN;", "",
+            "CREATE TABLE IF NOT EXISTS chart_definitions (",
+            "    id TEXT PRIMARY KEY,",
+            "    kind VARCHAR(16) NOT NULL,   -- 'chart' | 'tile'; never changes for a slug",
+            "    slug TEXT NOT NULL",
+            ");", "",
+            "END;", "",
+            "-- end migration", "",
+            "-- start rollback", "",
+            "BEGIN;", "",
+            "DROP TABLE chart_definitions;", "",
+            "END;", "",
+            "-- end rollback", "",
+            ];
+        var parser = new Parser(0, content, new SQliteDialect());
+        parser.ParseFile();
+        var result = parser.GetResult();
+
+        Assert.Equal(3, result["Migration"].Count);
+        var statement = result["Migration"][1];
+        Assert.Contains("slug TEXT NOT NULL", statement);
+        Assert.EndsWith(");", statement);
+    }
+
+    [Fact]
+    public void TestParseSemicolonInCommentInsideStatement() {
+        string[] content = [
+            """
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
+            """, "",
+            "-- start migration", "",
+            "BEGIN;", "",
+            "CREATE TABLE IF NOT EXISTS audit (",
+            "    id TEXT PRIMARY KEY,",
+            "    -- one row per change; rows are never updated",
+            "    changed_at TEXT NOT NULL",
+            ");", "",
+            "END;", "",
+            "-- end migration", "",
+            "-- start rollback", "",
+            "BEGIN;", "",
+            "DROP TABLE audit;", "",
+            "END;", "",
+            "-- end rollback", "",
+            ];
+        var parser = new Parser(0, content, new SQliteDialect());
+        parser.ParseFile();
+        var result = parser.GetResult();
+
+        Assert.Equal(3, result["Migration"].Count);
+        var statement = result["Migration"][1];
+        Assert.Contains("changed_at TEXT NOT NULL", statement);
+        Assert.EndsWith(");", statement);
+    }
+
+    [Fact]
+    public void TestParseSemicolonInStringLiteral() {
+        string[] content = [
+            """
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
+            """, "",
+            "-- start migration", "",
+            "BEGIN;", "",
+            "INSERT INTO versions (version, description, run_by, author)",
+            "VALUES (1, 'charts; then tiles', 'me', 'you');", "",
+            "END;", "",
+            "-- end migration", "",
+            "-- start rollback", "",
+            "BEGIN;", "",
+            "DELETE FROM versions WHERE version = 1;", "",
+            "END;", "",
+            "-- end rollback", "",
+            ];
+        var parser = new Parser(0, content, new SQliteDialect());
+        parser.ParseFile();
+        var result = parser.GetResult();
+
+        Assert.Equal(3, result["Migration"].Count);
+        var statement = result["Migration"][1];
+        Assert.Contains("'charts; then tiles'", statement);
+        Assert.EndsWith(");", statement);
+    }
+
+    [Fact]
+    public void TestParseSemicolonInBlockComment() {
+        string[] content = [
+            """
+            ------------------------------------------------------------------
+                                   -- | Migration file formatting rules.                               |
+                                   -- | 1. There must be one and only one migration and one and only   |
+                                   -- |    one rollback section.                                       |
+                                   -- | 2. Apart from the default transaction, you can add as many     |
+                                   -- | others as you need.                                            | 
+                                   -- | 3. The two sections and all transactions must be properly      |
+                                   -- | closed.                                                        |
+                                   -- ******************************************************************
+            """, "",
+            "-- start migration", "",
+            "BEGIN;", "",
+            "/* the tile kind was dropped in v2;",
+            "   see the migration notes */",
+            "ALTER TABLE chart_definitions ADD COLUMN theme TEXT;", "",
+            "END;", "",
+            "-- end migration", "",
+            "-- start rollback", "",
+            "BEGIN;", "",
+            "ALTER TABLE chart_definitions DROP COLUMN theme;", "",
+            "END;", "",
+            "-- end rollback", "",
+            ];
+        var parser = new Parser(0, content, new SQliteDialect());
+        parser.ParseFile();
+        var result = parser.GetResult();
+
+        Assert.Equal(3, result["Migration"].Count);
+        var statement = result["Migration"][1];
+        Assert.Contains("ALTER TABLE chart_definitions ADD COLUMN theme TEXT;", statement);
+    }
 }
