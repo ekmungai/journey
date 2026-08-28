@@ -5,7 +5,7 @@
 
 Write-Host "Building standalone Journey CLI executables..." -ForegroundColor Green
 
-$version = "1.3.0"
+$version = "1.4.0"
 
 $outputDir = "publish"
 if (Test-Path $outputDir) {
