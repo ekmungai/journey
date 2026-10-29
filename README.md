@@ -20,6 +20,10 @@ Each step is prepared in a standard format that ensures that both migrations and
 
 Every transaction declared in a version file is applied as one, on a single connection: if any of its queries fails, none of them are kept and the database is left exactly as it was before the step was attempted. Two caveats are worth knowing about: MySql and MariaDb commit implicitly on DDL, so a transaction that both changes the schema and moves data cannot be rolled back in full there, and Cassandra has no multi statement transactions at all, so its queries are applied one at a time.
 
+**Versions before 1.4.0 are not transactional**, despite the `BEGIN;`/`COMMIT;` lines the format requires. They sent each statement on its own, so every statement committed as it ran, and a failure part of the way through left the earlier statements of the step applied. If you are pinned to an older version, upgrade before running migrations whose steps cannot safely be half applied.
+
+The current version of the database is the highest version recorded in the `versions` table. A step whose version row is present is treated as applied, so a migration you finished by hand is completed by inserting its version row, and will not be run again.
+
 Each version file is validated before execution which when combined with a dry run mode which both applies the migration and rolls it back immediately, the tool provides a layer of safety however limited against irrecoverable damage to the database. 
 
 ## Supported Databases
@@ -119,6 +123,17 @@ If you want to view the metatdata of the migrations applied to the database up t
 ```bash
 journey history -p "path\to\versions-dir" -d sqlite -c "Data Source=journal.db"
 ```
+
+#### Command timeouts
+Most drivers give up on a query after 30 seconds, which is too short for long running DDL such as `CREATE INDEX` or `CREATE MATERIALIZED VIEW ... WITH DATA`. A query that times out fails its transaction, which is rolled back. Raise the limit with the `--command-timeout` option of the `migrate`, `rollback` and `update` commands, in seconds, with `0` for no limit:
+```bash
+journey update -p "path\to\versions-dir" -d postgres -c "postgres://user:pass@host/db" -q --command-timeout 0
+```
+In .NET, set the `CommandTimeout` property of the facade:
+```c#
+var journey = new JourneyFacade(databaseType, connectionString, versionsDirectory, schema, verbose) { CommandTimeout = 0 };
+```
+The timeout can also be set in the connection string itself, with the driver's own keyword (`Command Timeout` for Postgres and SQL Server, `Default Command Timeout` for MySql and MariaDb) or, in a uri style connection string, with `command_timeout`, e.g. `postgres://user:pass@host/db?command_timeout=0`. The option applies to the queries of the version files; Cassandra ignores it.
 
 ### Testing your migrations
 Journey does not hand a version file to the server as it is written: it splits the file into statements, points the bookkeeping table at the schema being migrated, and runs each declared transaction on a single connection of its own. A test that executes the body of a version file directly therefore proves that your SQL is valid, but not that Journey can apply it. Point your tests at `JourneyFacade` (or the CLI) instead, so that what they exercise is what will run in production.

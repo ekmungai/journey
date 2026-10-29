@@ -25,16 +25,16 @@ internal partial class Program {
         await journey.Scaffold();
     }
 
-    private static async Task RunMigrate(string path, string connection, string database, string schema, bool quiet, int? target, bool verbose, bool dryRun) {
+    private static async Task RunMigrate(string path, string connection, string database, string schema, bool quiet, int? target, bool verbose, bool dryRun, int? commandTimeout) {
         ValidateOptions(path);
-        var journey = new JourneyFacade(database, connection, path, schema, verbose);
+        var journey = new JourneyFacade(database, connection, path, schema, verbose) { CommandTimeout = commandTimeout };
         await journey.Init(quiet);
         await journey.Migrate(target, dryRun);
     }
 
-    private static async Task RunRollback(string path, string connection, string database, string schema, bool quiet, int? target, bool verbose) {
+    private static async Task RunRollback(string path, string connection, string database, string schema, bool quiet, int? target, bool verbose, int? commandTimeout) {
         ValidateOptions(path);
-        var journey = new JourneyFacade(database, connection, path, schema, verbose);
+        var journey = new JourneyFacade(database, connection, path, schema, verbose) { CommandTimeout = commandTimeout };
         await journey.Init(quiet);
         await journey.Rollback(target);
     }
@@ -53,9 +53,9 @@ internal partial class Program {
         await journey.History(entries);
     }
 
-    private static async Task RunUpdate(string path, string connection, string database, string schema, bool quiet, int? target, bool verbose) {
+    private static async Task RunUpdate(string path, string connection, string database, string schema, bool quiet, int? target, bool verbose, int? commandTimeout) {
         ValidateOptions(path);
-        var journey = new JourneyFacade(database, connection, path, schema, verbose);
+        var journey = new JourneyFacade(database, connection, path, schema, verbose) { CommandTimeout = commandTimeout };
         await journey.Init(quiet);
         await journey.Update(target);
     }

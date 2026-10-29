@@ -33,6 +33,19 @@ public abstract class GenericDbTests<T>(T container) : IClassFixture<T> where T 
     }
 
     [Fact]
+    public async Task TestGetCurrentVersionIsTheHighestRecorded() {
+        // A version recorded out of order, such as one inserted by hand after finishing a migration
+        // manually, must be read as the current version rather than counted.
+        await _database.Connect(container.GetConnectionString(), container.GetSchema()!);
+        await ClearVersionsTable();
+        await SetupVersionsTable();
+
+        await _database.Execute(container.GetVersionEntries()[1]);
+
+        Assert.Equal(2, await _database.CurrentVersion());
+    }
+
+    [Fact]
     public async Task TestExecute() {
         await _database.Connect(container.GetConnectionString(), container.GetSchema()!);
         await _database.Execute(container.GetValidQuery());

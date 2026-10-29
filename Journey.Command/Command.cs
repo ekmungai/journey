@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.Invocation;
 
 namespace Journey.Command;
 
@@ -51,6 +52,10 @@ internal class Command {
         description: "Immediately rollback migrations after they have been executed.",
         getDefaultValue: () => false
     );
+    private readonly Option<int?> _commandTimeout = new(
+        aliases: ["--command-timeout"],
+        description: "Seconds each migration query may run before it is abandoned, 0 for no limit. Defaults to the driver's (30s for most)."
+    );
     public Command() {
         _scaffold = new System.CommandLine.Command("scaffold", "Scaffold the next version migration file."){
             _path,
@@ -68,7 +73,8 @@ internal class Command {
             _quiet,
             _target,
             _verbose,
-            _dryRun
+            _dryRun,
+            _commandTimeout
         };
         _rollback = new System.CommandLine.Command("rollback", "Rollback the database to a target version.") {
             _path,
@@ -77,7 +83,8 @@ internal class Command {
             _schema,
             _quiet,
             _target,
-            _verbose
+            _verbose,
+            _commandTimeout
         };
         _validate = new System.CommandLine.Command("validate", "Validate the migration files.") {
             _path,
@@ -105,27 +112,32 @@ internal class Command {
             _schema,
             _quiet,
             _target,
-            _verbose
+            _verbose,
+            _commandTimeout
         };
     }
 
     public Command Build(
         Func<string, string, string, string, bool, bool, Task> scaffoldHandler,
-        Func<string, string, string, string, bool, int?, bool, bool, Task> migrateHandler,
-        Func<string, string, string, string, bool, int?, bool, Task> rollbackHandler,
+        Func<string, string, string, string, bool, int?, bool, bool, int?, Task> migrateHandler,
+        Func<string, string, string, string, bool, int?, bool, int?, Task> rollbackHandler,
         Func<string, string, string, string, bool, int?, bool, Task> validateHandler,
         Func<string, string, string, string, bool, int, bool, Task> historyHandler,
-        Func<string, string, string, string, bool, int?, bool, Task> updateHandler
+        Func<string, string, string, string, bool, int?, bool, int?, Task> updateHandler
     ) {
 
         //Set Handlers
         _scaffold.SetHandler(scaffoldHandler, _path, _connection, _database, _schema, _quiet, _verbose);
-        _migrate.SetHandler(migrateHandler, _path, _connection, _database, _schema, _quiet, _target, _verbose, _dryRun);
-        _rollback.SetHandler(rollbackHandler, _path, _connection, _database, _schema, _quiet, _target, _verbose);
+        // SetHandler binds at most 8 options, one short of what migrate takes.
+        _migrate.SetHandler((InvocationContext context) => migrateHandler(
+            Value(context, _path), Value(context, _connection), Value(context, _database), Value(context, _schema),
+            Value(context, _quiet), Value(context, _target), Value(context, _verbose), Value(context, _dryRun),
+            Value(context, _commandTimeout)));
+        _rollback.SetHandler(rollbackHandler, _path, _connection, _database, _schema, _quiet, _target, _verbose, _commandTimeout);
         _validate.SetHandler(validateHandler, _path, _connection, _database, _schema, _quiet, _target, _verbose);
         _history.SetHandler(historyHandler, _path, _connection, _database, _schema, _quiet, _entries, _verbose);
         _validate.SetHandler(validateHandler, _path, _connection, _database, _schema, _quiet, _target, _verbose);
-        _update.SetHandler(updateHandler, _path, _connection, _database, _schema, _quiet, _target, _verbose);
+        _update.SetHandler(updateHandler, _path, _connection, _database, _schema, _quiet, _target, _verbose, _commandTimeout);
 
         // Add Commands
         _root.AddCommand(_scaffold);
@@ -136,6 +148,9 @@ internal class Command {
         _root.AddCommand(_update);
         return this;
     }
+
+    private static T Value<T>(InvocationContext context, Option<T> option)
+        => context.ParseResult.GetValueForOption(option)!;
 
     public async Task<int> InvokeAsync(string[] args) {
         return await _root.InvokeAsync(args);

@@ -85,6 +85,13 @@ public class MysqlConnectionStringTest {
     }
 
     [Fact]
+    public void NormalizeConnectionString_UriWithCommandTimeout_TranslatesToConnectorKeyword() {
+        var result = Mysql.NormalizeConnectionString("mysql://user:pass@localhost/mydb?command_timeout=0");
+
+        Assert.Contains("Default Command Timeout=0", result, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void NormalizeConnectionString_UriWithUnknownParam_Throws() {
         Assert.Throws<InvalidConnectionStringParameterException>(() =>
             Mysql.NormalizeConnectionString("mysql://user:pass@localhost/mydb?not_a_real_option=1"));

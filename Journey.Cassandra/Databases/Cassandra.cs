@@ -42,8 +42,7 @@ internal record CassandraDb : IDatabase {
         var statement = new SimpleStatement(SchemaQualifier.Qualify(_dialect.CurrentVersionQuery(), _keySpace));
         try {
             var rowSet = await _session.ExecuteAsync(statement);
-            var version = rowSet.GetRows().FirstOrDefault()!.GetValue<long>("version");
-            return int.Parse(version.ToString());
+            return rowSet.GetRows().FirstOrDefault()?.GetValue<int?>("version") ?? 0;
         } catch (InvalidQueryException ex) when (ex.Message.Contains("table versions does not exist")) {
             return -1;
         }

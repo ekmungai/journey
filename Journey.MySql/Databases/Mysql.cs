@@ -14,6 +14,7 @@ internal record Mysql : IDatabase {
     public const string Name = "mysql";
     private readonly SqlDialect _dbDialect = new MysqlDialect();
     private string _connectionString = null!;
+    private int? _commandTimeout;
     private const string DatabaseNameRegex = "(?i)(database|db)=([^;]+)";
 
     // Uri spellings of parameters MySqlConnector knows by another keyword.
@@ -21,6 +22,7 @@ internal record Mysql : IDatabase {
         ["dbname"] = "Database",
         ["user"] = "User ID",
         ["connect_timeout"] = "Connection Timeout",
+        ["command_timeout"] = "Default Command Timeout",
         ["charset"] = "Character Set",
     };
 
@@ -63,6 +65,7 @@ internal record Mysql : IDatabase {
         await connection.OpenAsync();
         var command = connection.CreateCommand();
         command.CommandText = query;
+        if (_commandTimeout.HasValue) command.CommandTimeout = _commandTimeout.Value;
         await command.ExecuteNonQueryAsync();
     }
 
@@ -70,8 +73,11 @@ internal record Mysql : IDatabase {
     public async Task ExecuteAll(IReadOnlyList<string> queries, Action<string>? onQuery = null) {
         await using var connection = new MySqlConnection(_connectionString);
         await connection.OpenAsync();
-        await BatchExecutor.Execute(connection, queries, _dbDialect, onQuery: onQuery);
+        await BatchExecutor.Execute(connection, queries, _dbDialect, onQuery: onQuery, commandTimeout: _commandTimeout);
     }
+
+    /// <inheritdoc/>
+    public void SetCommandTimeout(int seconds) => _commandTimeout = seconds;
 
     /// <inheritdoc/>
     public async Task<int> CurrentVersion() {

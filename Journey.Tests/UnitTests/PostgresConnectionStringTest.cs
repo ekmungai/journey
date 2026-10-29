@@ -88,6 +88,13 @@ public class PostgresConnectionStringTest {
     }
 
     [Fact]
+    public void NormalizeConnectionString_UriWithCommandTimeout_TranslatesToNpgsqlKeyword() {
+        var result = PgDb.NormalizeConnectionString("postgres://user:pass@localhost/mydb?command_timeout=0");
+
+        Assert.Contains("Command Timeout=0", result, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void NormalizeConnectionString_UriWithEscapedParamValue_DecodesCorrectly() {
         var result = PgDb.NormalizeConnectionString(
             "postgres://user:pass@localhost/mydb?application_name=my%20app");

@@ -20,6 +20,13 @@ public class JourneyFacade(
     private Migrator _migrator = null!;
     private IDatabase _database = null!;
 
+    /// <summary>
+    /// How long, in seconds, each migration query may run before it is abandoned; 0 waits
+    /// indefinitely. Leave unset to keep the driver's default (or the one in the connection string),
+    /// which for most drivers is 30 seconds and too short for long running DDL.
+    /// </summary>
+    public int? CommandTimeout { get; init; }
+
     /// <summary>Registers a database factory for a given database type name.</summary>
     public static void RegisterDatabase(string name, Func<string, string?, Task<IDatabase>> factory)
         => _registry[name] = factory;
@@ -32,11 +39,14 @@ public class JourneyFacade(
     }
 
     public async Task Init(bool quiet, IFileSystem? fileSystem = null) {
+        if (CommandTimeout < 0)
+            throw new ArgumentOutOfRangeException(nameof(CommandTimeout), CommandTimeout, "The command timeout cannot be negative");
         if (!_registry.TryGetValue(databaseType, out var factory))
             throw new NotSupportedException(
                 $"Database type '{databaseType}' is not registered. " +
                 $"Add a reference to the Ekmungai.Journey.* package for your database.");
         _database = await factory(connectionString, schema);
+        if (CommandTimeout.HasValue) _database.SetCommandTimeout(CommandTimeout.Value);
         _migrator = new Migrator(new FileManager(versionsDir, fileSystem ?? new FileSystem()), _database, verbose);
         await _migrator.Init(quiet);
     }

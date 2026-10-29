@@ -23,6 +23,9 @@ internal record CassandraDialect : SqlDialect {
                                               VALUES ([versionNumber], '', '', '');
                                               """;
     /// <inheritdoc/>
+    /// CQL has no COALESCE, so an empty table yields null, which the database reads as version 0.
+    public override string CurrentVersionQuery() => "SELECT MAX(version) as version FROM versions;";
+    /// <inheritdoc/>
     public override string StartTransaction() => "";
     /// <inheritdoc/>
     public override string HistoryQuery() => "SELECT * FROM versions LIMIT [entries];";

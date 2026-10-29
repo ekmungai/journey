@@ -12,6 +12,7 @@ internal record Sqlite : IDatabase {
     public const string Name = "sqlite";
     private readonly SqlDialect _dialect = new SQliteDialect();
     private SQLiteConnection _connection = null!;
+    private int? _commandTimeout;
 
     internal static string NormalizeConnectionString(string connectionString) {
         if (!connectionString.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
@@ -46,12 +47,16 @@ internal record Sqlite : IDatabase {
     public async Task Execute(string query) {
         var command = _connection.CreateCommand();
         command.CommandText = query;
+        if (_commandTimeout.HasValue) command.CommandTimeout = _commandTimeout.Value;
         await command.ExecuteNonQueryAsync();
     }
 
     /// <inheritdoc/>
     public async Task ExecuteAll(IReadOnlyList<string> queries, Action<string>? onQuery = null)
-        => await BatchExecutor.Execute(_connection, queries, _dialect, onQuery: onQuery);
+        => await BatchExecutor.Execute(_connection, queries, _dialect, onQuery: onQuery, commandTimeout: _commandTimeout);
+
+    /// <inheritdoc/>
+    public void SetCommandTimeout(int seconds) => _commandTimeout = seconds;
 
     /// <inheritdoc/>
     public async Task<int> CurrentVersion() {
