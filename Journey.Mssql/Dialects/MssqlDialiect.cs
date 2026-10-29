@@ -26,7 +26,7 @@ internal record MssqlDialect : SqlDialect {
                                               VALUES ([versionNumber], '', '', '');
                                               """;
     /// <inheritdoc/>
-    public override string CurrentVersionQuery() => "SELECT COUNT(*) as [Version] FROM [dbo].[Versions];";
+    public override string CurrentVersionQuery() => "SELECT COALESCE(MAX([Version]), 0) as [Version] FROM [dbo].[Versions];";
     /// <inheritdoc/>
     public override string RollbackVersionsTable() => "DROP TABLE [dbo].[Versions];";
     /// <inheritdoc/>

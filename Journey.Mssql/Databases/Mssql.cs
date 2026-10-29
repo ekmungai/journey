@@ -14,6 +14,7 @@ internal record Mssql : IDatabase {
     public const string Name = "mssql";
     private readonly SqlDialect _dbDialect = new MssqlDialect();
     private string _connectionString = null!;
+    private int? _commandTimeout;
     private const string DatabaseNameRegex = "(?i)(database|initial catalog)=([^;]+)";
 
     // Uri spellings of parameters SqlClient knows by another keyword.
@@ -21,6 +22,7 @@ internal record Mssql : IDatabase {
         ["dbname"] = "Initial Catalog",
         ["user"] = "User ID",
         ["connect_timeout"] = "Connect Timeout",
+        ["command_timeout"] = "Command Timeout",
         ["application_name"] = "Application Name",
     };
 
@@ -61,6 +63,7 @@ internal record Mssql : IDatabase {
         await connection.OpenAsync();
         var command = connection.CreateCommand();
         command.CommandText = query;
+        if (_commandTimeout.HasValue) command.CommandTimeout = _commandTimeout.Value;
         await command.ExecuteNonQueryAsync();
     }
 
@@ -68,8 +71,11 @@ internal record Mssql : IDatabase {
     public async Task ExecuteAll(IReadOnlyList<string> queries, Action<string>? onQuery = null) {
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync();
-        await BatchExecutor.Execute(connection, queries, _dbDialect, onQuery: onQuery);
+        await BatchExecutor.Execute(connection, queries, _dbDialect, onQuery: onQuery, commandTimeout: _commandTimeout);
     }
+
+    /// <inheritdoc/>
+    public void SetCommandTimeout(int seconds) => _commandTimeout = seconds;
 
     /// <inheritdoc/>
     public async Task<int> CurrentVersion() {

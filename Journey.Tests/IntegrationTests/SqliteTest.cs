@@ -55,6 +55,21 @@ public class SqliteTest {
     }
 
     [Fact]
+    public async Task TestGetCurrentVersionIsTheHighestRecorded() {
+        // A version recorded by hand, out of order or twice must not shift the current version,
+        // or a migration that has already been applied would be run again.
+        await _database.Connect(_connectionString);
+        await SetupVersionsTable();
+
+        await _database.Execute("INSERT INTO versions (version, description, run_by, author) VALUES (3, '', '', '');");
+        Assert.Equal(3, await _database.CurrentVersion());
+
+        await _database.Execute("INSERT INTO versions (version, description, run_by, author) VALUES (3, '', '', '');");
+        await _database.Execute("INSERT INTO versions (version, description, run_by, author) VALUES (1, '', '', '');");
+        Assert.Equal(3, await _database.CurrentVersion());
+    }
+
+    [Fact]
     public async Task TestExecute() {
         await _database.Connect(_connectionString);
         var query = "CREATE TABLE test (column TEST)";

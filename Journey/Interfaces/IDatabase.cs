@@ -42,6 +42,12 @@ public interface IDatabase : IDisposable {
         }
     }
     /// <summary>
+    /// Sets how long the queries of a migration or rollback may run before they are abandoned,
+    /// overriding the driver's default. Databases whose driver has no such setting ignore it.
+    /// </summary>
+    /// <param name="seconds">The timeout in seconds, or 0 to wait indefinitely.</param>
+    public void SetCommandTimeout(int seconds) { }
+    /// <summary>
     /// Gets the current version of the Database.
     /// </summary>
     /// <returns cref="Task"></returns>

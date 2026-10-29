@@ -15,12 +15,14 @@ internal record Postgres : IDatabase {
     private string _connectionString = null!;
     private const string DatabaseNameRegex = "(?i)(database|db)=([^;]+)";
     private string _schema = "public";
+    private int? _commandTimeout;
 
     // Libpq spellings of parameters Npgsql knows by another keyword.
     private static readonly Dictionary<string, string> ParameterAliases = new(StringComparer.OrdinalIgnoreCase) {
         ["dbname"] = "Database",
         ["user"] = "Username",
         ["connect_timeout"] = "Timeout",
+        ["command_timeout"] = "Command Timeout",
         ["application_name"] = "Application Name",
         ["sslmode"] = "SSL Mode",
         ["sslcert"] = "SSL Certificate",
@@ -68,6 +70,7 @@ internal record Postgres : IDatabase {
         await using var dataSource = NpgsqlDataSource.Create(_connectionString);
         var command = dataSource.CreateCommand();
         command.CommandText = Qualify(query);
+        if (_commandTimeout.HasValue) command.CommandTimeout = _commandTimeout.Value;
         await command.ExecuteNonQueryAsync();
     }
 
@@ -75,8 +78,11 @@ internal record Postgres : IDatabase {
     public async Task ExecuteAll(IReadOnlyList<string> queries, Action<string>? onQuery = null) {
         await using var dataSource = NpgsqlDataSource.Create(_connectionString);
         await using var connection = await dataSource.OpenConnectionAsync();
-        await BatchExecutor.Execute(connection, queries, _dialect, Qualify, onQuery);
+        await BatchExecutor.Execute(connection, queries, _dialect, Qualify, onQuery, _commandTimeout);
     }
+
+    /// <inheritdoc/>
+    public void SetCommandTimeout(int seconds) => _commandTimeout = seconds;
 
     /// <inheritdoc/>
     public async Task<int> CurrentVersion() {

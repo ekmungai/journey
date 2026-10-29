@@ -22,12 +22,14 @@ internal static class BatchExecutor {
     /// <param name="dialect">The dialect the transaction delimiters are written in.</param>
     /// <param name="rewrite">Applied to each query before it is executed, if given.</param>
     /// <param name="onQuery">Called with each query before it is executed, if given.</param>
+    /// <param name="commandTimeout">The timeout in seconds of each query, or the driver's default if not given.</param>
     public static async Task Execute(
         DbConnection connection,
         IReadOnlyList<string> queries,
         IDialect dialect,
         Func<string, string>? rewrite = null,
-        Action<string>? onQuery = null
+        Action<string>? onQuery = null,
+        int? commandTimeout = null
     ) {
         DbTransaction? transaction = null;
         try {
@@ -51,6 +53,7 @@ internal static class BatchExecutor {
 
                 await using var command = connection.CreateCommand();
                 command.Transaction = transaction;
+                if (commandTimeout.HasValue) command.CommandTimeout = commandTimeout.Value;
                 command.CommandText = rewrite == null ? query : rewrite(query);
                 await command.ExecuteNonQueryAsync();
             }

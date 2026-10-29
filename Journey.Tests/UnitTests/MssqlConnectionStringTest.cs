@@ -74,6 +74,13 @@ public class MssqlConnectionStringTest {
     }
 
     [Fact]
+    public void NormalizeConnectionString_UriWithCommandTimeout_TranslatesToSqlClientKeyword() {
+        var result = MssqlDb.NormalizeConnectionString("sqlserver://user:pass@localhost/mydb?command_timeout=0");
+
+        Assert.Contains("Command Timeout=0", result, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void NormalizeConnectionString_UriWithUnknownParam_Throws() {
         Assert.Throws<InvalidConnectionStringParameterException>(() =>
             MssqlDb.NormalizeConnectionString("sqlserver://user:pass@localhost/mydb?not_a_real_option=1"));
